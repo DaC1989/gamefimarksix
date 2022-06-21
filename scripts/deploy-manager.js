@@ -15,7 +15,7 @@ async function main() {
 
     // We get the contract to deploy
     const LotteryManager = await hre.ethers.getContractFactory("LotteryManager");
-    const lotteryManager = await LotteryManager.deploy("0xe93Ddd348FAcf525c97294043713F2629E3fC153");
+    const lotteryManager = await LotteryManager.deploy("0xA3CC0f2E5Af2676b8182980A67034C782902758F");
 
     await lotteryManager.deployed();
 
