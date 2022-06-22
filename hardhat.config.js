@@ -21,9 +21,11 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  defaultNetwork: "bscTestnet",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
+      from: "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
+      accounts: [{privateKey:"76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d", balance:"104949625000000000"}]
     },
     matic: {
       url: "https://polygon-rpc.com/",
@@ -51,7 +53,7 @@ module.exports = {
     artifacts: "./artifacts"
   },
   mocha: {
-    timeout: 20000
+    timeout: 200000
   },
   etherscan: {
     apiKey: {

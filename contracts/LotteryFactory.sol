@@ -5,6 +5,8 @@ import "./interfaces/ILotteryFactory.sol";
 import "./NoDelegateCall.sol";
 import "./LotteryTableDeployer.sol";
 
+import "hardhat/console.sol";
+
 contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall{
 
     address public override owner;
@@ -20,7 +22,9 @@ contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall
         uint256 maxPPL, uint256 coolDownTime, uint256 gameTime,
         uint256 bankerCommission, uint256 referralCommission, address bankerWallet) external view override
     returns (address table) {
-
+        uint256 hash = uint256(keccak256(abi.encodePacked(amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
+        table = tableMap[creator][hash];
+        console.log("getTable", table);
     }
 
     function createTable(address creator, uint256 amount, uint256 minPPL,
@@ -39,10 +43,10 @@ contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall
         require(bankerWallet != address(0));
 
         uint256 hash = uint256(keccak256(abi.encodePacked(amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
+        console.log("hash", hash);
         require(tableMap[creator][hash] == address(0));
         table = deploy(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
         tableMap[creator][hash] = table;
-//        getTable[amount][creator] = table;
 
         emit tableCreated(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
     }

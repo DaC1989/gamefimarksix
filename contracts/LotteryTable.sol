@@ -37,9 +37,4 @@ contract LotteryTable {
                                 referralCommission:params.referralCommission,
                                 bankerWallet:params.bankerWallet});
     }
-
-
-
-
-
 }

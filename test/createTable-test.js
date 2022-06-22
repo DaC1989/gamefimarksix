@@ -1,25 +1,32 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
 const hre = require("hardhat");
+const Web3 = require("web3");
 
-describe("create table", function () {
-    it("create table", async function () {
-        const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactory");
-        const lotteryFactory = await LotteryFactory.deploy();
-        await lotteryFactory.deployed();
-        console.log("LotteryFactory deployed to:", lotteryFactory.address);
+async function main() {
+    const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactory");
+    const lotteryFactory = await LotteryFactory.deploy();
+    await lotteryFactory.deployed();
+    console.log("LotteryFactory deployed to:", lotteryFactory.address);
 
-        const LotteryManager = await hre.ethers.getContractFactory("LotteryManager");
-        const lotteryManager = await LotteryManager.deploy(lotteryFactory.address);
-        await lotteryManager.deployed();
-        console.log("lotteryManager deployed to:", lotteryManager.address);
+    const LotteryManager = await hre.ethers.getContractFactory("LotteryManager");
+    const lotteryManager = await LotteryManager.deploy(lotteryFactory.address);
+    await lotteryManager.deployed();
+    console.log("LotteryManager deployed to:", lotteryManager.address);
 
-        const tableAddressTx = await lotteryManager.createTableIfNecessary(lotteryFactory.address, 1, 1, 5, 5, 10, 1, 1, lotteryFactory.address);
+    const tableAddressTx = await lotteryManager.createTableIfNecessary(lotteryManager.address, Web3.utils.toWei('1', 'ether'), 1, 5, 5, 10, 1, 1, lotteryManager.address);
+    const tableAddressTx2 = await lotteryManager.createTableIfNecessary(lotteryManager.address, Web3.utils.toWei('1', 'ether'), 1, 5, 5, 10, 1, 1, lotteryManager.address);
+    // wait until the transaction is mined
+    await tableAddressTx.wait();
 
-        // wait until the transaction is mined
-        await tableAddressTx.wait();
-        console.log("tableAddressTx deployed to:", tableAddressTx);
+    await tableAddressTx2.wait();
+    console.log("tableAddressTx deployed to:", tableAddressTx);
+    console.log("tableAddressTx2 deployed to:", tableAddressTx2);
+}
 
-        //expect(await greeter.greet()).to.equal("Hola, mundo!");
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
     });
-});
