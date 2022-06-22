@@ -10,8 +10,8 @@ const accA = "76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d";
 //合约abi
 const abiJson = require("../artifacts/contracts/LotteryManager.sol/LotteryManager.json");
 
+// const contractAddress = "0x39Ad1CADd23c38cAA2D854dB220445D7DADc4D72";
 const contractAddress = "0xA3CC0f2E5Af2676b8182980A67034C782902758F";
-
 //计算gas
 async function calculateGas(addr, data) {
     let gasPrice = await web3.eth.getGasPrice()
@@ -37,12 +37,16 @@ async function createTableIfNecessary() {
     let {gasPrice, estimateGas} = await calculateGas(address, data);
 
     console.log("wallet.address", wallet.address)
-    let result = await contract.methods.createTableIfNecessary(wallet.address, Web3.utils.toWei('2', 'ether'), 1,
-                                                                3, 300, 600,
-                                                                1, 1, wallet.address).send({
-        gasPrice: gasPrice,
-        gas: estimateGas*100,
-        from: address
+
+    let result = await contract
+        .methods
+        .createTableIfNecessary(wallet.address, Web3.utils.toWei('2', 'ether'), 1, //creator、betting amount、minPPL
+                                                                3, 300, 600,//maxPPL、coolDownTime、gameTime
+                                                                1, 1, wallet.address)//bankerCommission、referralCommission、bankerWallet
+        .send({
+            gasPrice: gasPrice,
+            gas: estimateGas*100,
+            from: address
     });
     console.log("test2 result: ", result);
     return result;
