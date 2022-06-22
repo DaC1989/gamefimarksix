@@ -1,0 +1,235 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ILotteryFactory",
+  "sourceName": "contracts/interfaces/ILotteryFactory.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "creator",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minPPL",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "maxPPL",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "coolDownTime",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "gameTime",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "bankerCommission",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "referralCommission",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "bankerWallet",
+          "type": "address"
+        }
+      ],
+      "name": "tableCreated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "creator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minPPL",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxPPL",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "coolDownTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "gameTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "bankerCommission",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "referralCommission",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "bankerWallet",
+          "type": "address"
+        }
+      ],
+      "name": "createTable",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "table",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "creator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minPPL",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxPPL",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "coolDownTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "gameTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "bankerCommission",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "referralCommission",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "bankerWallet",
+          "type": "address"
+        }
+      ],
+      "name": "getTable",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "table",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "setOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

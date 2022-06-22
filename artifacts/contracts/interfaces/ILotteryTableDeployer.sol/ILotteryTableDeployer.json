@@ -1,0 +1,76 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ILotteryTableDeployer",
+  "sourceName": "contracts/interfaces/ILotteryTableDeployer.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "getParameters",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "factory",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "creator",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minPPL",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxPPL",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coolDownTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "gameTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "bankerCommission",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "referralCommission",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "bankerWallet",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct ILotteryTableDeployer.Parameters",
+          "name": "parameters",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
