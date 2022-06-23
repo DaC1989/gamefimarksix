@@ -5,7 +5,7 @@ const web3 = new Web3("https://bsc-testnet.web3api.com/v1/FE3K26WKD1VF2FQZ922MU9
 //factory合约abi
 const abiJson = require("../artifacts/contracts/LotteryFactory.sol/LotteryFactory.json");
 
-//manager合约address
+//factory合约address
 const contractAddress = "0xB175E50C83547F59194fE35F3709F1DA280Ac896";
 
 //监听实时事件
