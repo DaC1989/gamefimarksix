@@ -7,9 +7,9 @@ const address = "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827";
 //钱包私钥
 const accA = "76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d";
 
-//合约abi
+//manager合约abi
 const abiJson = require("../artifacts/contracts/LotteryManager.sol/LotteryManager.json");
-
+//manager合约address
 const contractAddress = "0x9b498F384C0aeC06A43b78F6B9A16324eE8c5612";
 //计算gas
 async function calculateGas(from, to, data) {
@@ -31,14 +31,13 @@ async function createTableIfNecessary() {
     web3.eth.accounts.wallet.add(accA);
     let wallet = web3.eth.accounts.privateKeyToAccount(accA);
     let data = contract.methods.createTableIfNecessary(address, Web3.utils.toWei('1', 'ether'), 1, 5, 5, 10, 1, 1, address).encodeABI();
-
     let {gasPrice, estimateGas} = await calculateGas(address, contractAddress, data);
 
     console.log("wallet.address", wallet.address)
 
     let result = await contract
         .methods
-        .createTableIfNecessary(address, Web3.utils.toWei('1', 'ether'), 1, //creator、betting amount、minPPL
+        .createTableIfNecessary(address, Web3.utils.toWei('1', 'ether'), 2, //creator、betting amount、minPPL
                                                                 5, 5, 10,//maxPPL、coolDownTime、gameTime
                                                                 1, 1, address)//bankerCommission、referralCommission、bankerWallet
         .send({

@@ -21,7 +21,7 @@ async function subscribeCreateTable() {
 async function pastCreateTable() {
     let contract = new web3.eth.Contract(abiJson.abi, contractAddress);
     await contract.getPastEvents('tableCreated',
-        {fromBlock: web3.utils.toHex(20414175), toBlock: web3.utils.toHex(20414175), topics:["0xde21502196fedda3172f49e07096afe58333a70e6e2f4da4e0c235b3845db91d"]},
+        {fromBlock: 20414175, toBlock: 20414176},
         function (err, result) {
                 if (!err) {
                     console.log(result);

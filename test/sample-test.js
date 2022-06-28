@@ -15,5 +15,5 @@ describe("Greeter", function () {
     await setGreetingTx.wait();
 
     expect(await greeter.greet()).to.equal("Hola, mundo!");
-  });
+  }).timeout(10000);;
 });
