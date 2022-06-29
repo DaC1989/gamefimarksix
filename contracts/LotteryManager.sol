@@ -6,10 +6,13 @@ import "./libraries/TableAddress.sol";
 
 import "hardhat/console.sol";
 import "./interfaces/ILotteryTable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract LotteryManager {
 
     address public immutable factory;
+    IERC20 token;
 
     address owner;
 
@@ -19,8 +22,9 @@ contract LotteryManager {
 
     mapping(address => uint256) private tableHash;
 
-    constructor(address _factory) {
+    constructor(address _factory, address _tokenAddress) {
         factory = _factory;
+        token = IERC20(address(_tokenAddress));
         owner = msg.sender;
     }
 
@@ -48,28 +52,37 @@ contract LotteryManager {
     }
 
     //msg.sender is player
-    // count: 下注数量, number:下注数字
+    // count: 下注数量, number:下注数字, tableInfo:创建合约参数
     function joinTableV1(uint32 count, uint8 number, ILotteryTable.TableInfo memory tableInfo)
     external payable returns (bool result) {
+        console.log("joinTableV1 msg.sender", msg.sender);
         console.log("tableInfo is:", tableInfo.creator);
         address referraler = referralMap[msg.sender];
         uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
         address tableAddress = hashTable[hash];
         require(tableAddress != address(0), "please check the address!");
 
-//        TableAddress.TableKey memory tableKey = TableAddress.TableKey({factory: factory, creator: tableInfo.creator, amount: tableInfo.amount, minPPL:tableInfo.minPPL, maxPPL: tableInfo.maxPPL, coolDownTime: tableInfo.coolDownTime, gameTime: tableInfo.gameTime, bankerCommission: tableInfo.bankerCommission, referralCommission: tableInfo.referralCommission, bankerWallet: tableInfo.bankerWallet});
-//        address tableAddress = TableAddress.computeAddressV1(factory, tableKey);
+        //TableAddress.TableKey memory tableKey = TableAddress.TableKey({factory: factory, creator: tableInfo.creator, amount: tableInfo.amount, minPPL:tableInfo.minPPL, maxPPL: tableInfo.maxPPL, coolDownTime: tableInfo.coolDownTime, gameTime: tableInfo.gameTime, bankerCommission: tableInfo.bankerCommission, referralCommission: tableInfo.referralCommission, bankerWallet: tableInfo.bankerWallet});
+        //address tableAddress = TableAddress.computeAddressV1(factory, tableKey);
         console.log("tableAddress is", tableAddress);
         console.log("tableHash[tableAddress]", tableHash[tableAddress]);
         require(tableHash[tableAddress] != 0);
         console.log("tableAddress", tableAddress);
+
+//        uint256 betAmount = joinInfo.count.mul(tableInfo.amount);
+//        console.log("betAmount", betAmount);
+//        usdt.transferFrom(msg.sender, address(this), betAmount);
+
         LotteryTable lotteryTable = LotteryTable(tableAddress);
         ILotteryTable.JoinInfo memory joinInfo = ILotteryTable.JoinInfo({count:count, number: number, referraler:referraler});
         lotteryTable.joinTable(joinInfo);
+
         result = true;
     }
 
     //msg.sender is manager
+    //启动一局
+    //tableInfo:创建合约参数
     function startRound(ILotteryTable.TableInfo memory tableInfo) external onlyManagerOwner payable returns (bool result) {
         uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
         address tableAddress = hashTable[hash];

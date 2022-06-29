@@ -16,8 +16,8 @@ interface ILotteryTable {
     }
 
     struct JoinInfo {
-        uint32 count;
-        uint8 number;
+        uint256 count;
+        uint256 number;
         address referraler;
     }
 

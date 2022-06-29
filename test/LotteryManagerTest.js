@@ -103,14 +103,12 @@ describe("LotteryManager", function () {
         console.log("erc20 deployed to:", erc20.address);
         const totalSupply = await erc20.totalSupply();
         console.log("totalSupply", totalSupply);
-        console.log("balanceOf", await erc20.balanceOf("0x73F7fF55196c525A8273c766BeeA3F61D1b829b2"));
-        // const transferTx = await erc20.transfer("", "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", Web3.utils.toWei('2', 'ether'));
-        // await transferTx.wait();
+        console.log("balanceOf", await erc20.balanceOf("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"));
 
         const tableAddressTx = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", Web3.utils.toWei('1', 'ether'), 1, 5, 5, 10, 1, 1, "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827");
         await tableAddressTx.wait();
 
-        const arg = {"creator": "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
+        const tableInfo = {"creator": "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
             "amount": Web3.utils.toWei('1', 'ether'),
             "minPPL":1,
             "maxPPL":5,
@@ -120,12 +118,13 @@ describe("LotteryManager", function () {
             "referralCommission":1,
             "bankerWallet":"0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"};
         const signers = await ethers.getSigners();
-        const joinTableV1Tx = await lotteryManager.joinTableV1(1, 2, arg, {
+        const joinTableV1Tx = await lotteryManager.joinTableV1(1, 2, tableInfo, {
             value: Web3.utils.toWei('1', 'ether'),
         });
+        console.log("table contract wallet balance:", await erc20.balanceOf("0x1008b527f4334d98ef985cd210440b7c7a9f3d5e"));
         await joinTableV1Tx.wait();
 
-        const startRoundTx = await lotteryManager.startRound(arg);
+        const startRoundTx = await lotteryManager.startRoundV1(tableInfo);
         await startRoundTx.wait();
     }).timeout(10000);
 });

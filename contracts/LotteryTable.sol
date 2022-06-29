@@ -26,7 +26,7 @@ contract LotteryTable is ILotteryTable{
         //hardhat usdt:0x73F7fF55196c525A8273c766BeeA3F61D1b829b2
         //BSC testnet USDT:0x337610d27c682E347C9cD60BD4b3b107C9d34dDd
         //BSC mainnet USDT:0x55d398326f99059ff775485246999027b3197955
-        usdt = IERC20(address(0x73F7fF55196c525A8273c766BeeA3F61D1b829b2));
+        usdt = IERC20(address(0x337610d27c682E347C9cD60BD4b3b107C9d34dDd));
 
         ILotteryTableDeployer.Parameters memory params = ILotteryTableDeployer(msg.sender).getParameters();
         factory = params.factory;
@@ -44,13 +44,19 @@ contract LotteryTable is ILotteryTable{
     //msg.sender is player
     function joinTable(JoinInfo memory joinInfo) external override payable {
         console.log("roundInfo.getCount(msg.sender)", roundInfo.getCount(msg.sender));
+        console.log("address(this)", address(this));
         require(roundInfo.getCount(msg.sender) == 0, "duplicated bet");
         //approve
         //usdt.approve(address(this), msg.value);
         //transfer
-        console.log("msg.value", msg.value);
-        usdt.transferFrom(msg.sender, address(this), msg.value);
-        console.log("address(this) balance:", usdt.balanceOf(address(this)));
+        uint256 betAmount = joinInfo.count.mul(tableInfo.amount);
+        console.log("betAmount", betAmount);
+//        usdt.transferFrom(msg.sender, address(this), betAmount);
+        console.log("totalSupply", usdt.totalSupply());
+        console.log("msg.sender", msg.sender);
+        console.log("usdt.balanceOf(msg.sender):", usdt.balanceOf(msg.sender));
+        payable(address(this)).transfer(betAmount);
+        console.log("usdt.balanceOf(msg.sender):", usdt.balanceOf(msg.sender));
         //bankerCommission
         uint256 bankerCommissionAmount = msg.value * (tableInfo.bankerCommission.div(10000));
         usdt.transferFrom(msg.sender, tableInfo.bankerWallet, bankerCommissionAmount);

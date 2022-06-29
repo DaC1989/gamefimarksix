@@ -20,8 +20,11 @@ async function main() {
     await lotteryFactory.deployed();
     console.log("LotteryFactory deployed to:", lotteryFactory.address);
 
+    //hardhat usdt:0x73F7fF55196c525A8273c766BeeA3F61D1b829b2
+    //BSC testnet USDT:0x337610d27c682E347C9cD60BD4b3b107C9d34dDd
+    //BSC mainnet USDT:0x55d398326f99059ff775485246999027b3197955
     const LotteryManager = await hre.ethers.getContractFactory("LotteryManager");
-    const lotteryManager = await LotteryManager.deploy(lotteryFactory.address);
+    const lotteryManager = await LotteryManager.deploy(lotteryFactory.address, "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd");
     await lotteryManager.deployed();
     console.log("lotteryManager deployed to:", lotteryManager.address);
 }
