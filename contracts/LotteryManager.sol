@@ -22,6 +22,8 @@ contract LotteryManager {
     mapping(address => string) private tableHash;
     mapping(address => uint256) private tablePool;
 
+    event CreateTableIfNecessary(string hash);
+
     constructor(address _factory, address _tokenAddress) {
         factory = _factory;
         token = IERC20(address(_tokenAddress));
@@ -35,6 +37,7 @@ contract LotteryManager {
 
     //创建table
     //msg.sender is manager
+    //return table的hash
     function createTableIfNecessary(address creator, uint256 amount, uint256 minPPL,
                                     uint256 maxPPL, uint256 coolDownTime, uint256 gameTime,
                                     uint256 bankerCommission, uint256 referralCommission, address bankerWallet)
@@ -49,6 +52,8 @@ contract LotteryManager {
         hashString = hash.toString();
         hashTable[hashString] = table;
         tableHash[table] = hashString;
+
+        emit CreateTableIfNecessary(hashString);
     }
 
     function editTable(string memory hashString, ILotteryTable.TableInfo memory tableInfo) external onlyManagerOwner {
@@ -58,7 +63,6 @@ contract LotteryManager {
         LotteryTable lotteryTable = LotteryTable(tableAddress);
 
     }
-
 
     //msg.sender is player
     // count: 下注数量, number:下注数字, tableInfo:创建合约参数
@@ -126,6 +130,7 @@ contract LotteryManager {
     //msg.sender is manager
     //启动一局
     //tableInfo:创建合约参数
+    //return(第几局，开奖结果，赢家，所有玩家)
     function startRoundV1(ILotteryTable.TableInfo memory tableInfo) external onlyManagerOwner payable returns (uint256, uint256, address[] memory, address[] memory ) {
         uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
         address tableAddress = hashTable[hash.toString()];
@@ -162,6 +167,7 @@ contract LotteryManager {
     //msg.sender is manager
     //启动一局
     //hash:合约hash
+    //return(第几局，开奖结果，赢家，所有玩家)
     function startRoundV2(string memory hash) external onlyManagerOwner payable returns (uint256, uint256, address[] memory, address[] memory) {
         address tableAddress = hashTable[hash];
         require(tableAddress != address(0), "please check the address!");

@@ -114,8 +114,13 @@ describe("LotteryManager", function () {
         //player approve
         await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('1', 'ether'));
 
-        const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", Web3.utils.toWei('1', 'ether'), 1, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
+        const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
+            Web3.utils.toWei('1', 'ether'), 1, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
         await createTableIfNecessary.wait();
+        const receipt = await createTableIfNecessary.wait()
+        for (const event of receipt.events) {
+            console.log(`Event ${event.event} with args ${event.args}`);
+        }
 
         const tableInfo = {"creator": "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
             "amount": Web3.utils.toWei('1', 'ether'),

@@ -18,7 +18,6 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     using Counters for Counters.Counter;
 
     address public immutable factory;
-    IERC20 token;
     TableInfo public tableInfo;
     RoundInfo roundInfo = new RoundInfo();
     uint256[] private _playersCount;
@@ -30,11 +29,6 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     }
 
     constructor() {
-        //hardhat token:0x73F7fF55196c525A8273c766BeeA3F61D1b829b2
-        //BSC testnet token:0x337610d27c682E347C9cD60BD4b3b107C9d34dDd
-        //BSC mainnet token:0x55d398326f99059ff775485246999027b3197955
-        token = IERC20(address(0x337610d27c682E347C9cD60BD4b3b107C9d34dDd));
-
         ILotteryTableDeployer.Parameters memory params = ILotteryTableDeployer(msg.sender).getParameters();
         factory = params.factory;
         tableInfo =  TableInfo({creator: params.creator,
