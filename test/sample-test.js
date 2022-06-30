@@ -14,6 +14,8 @@ describe("Greeter", function () {
     // wait until the transaction is mined
     await setGreetingTx.wait();
 
+    console.log("1", await greeter.greet());
+
     expect(await greeter.greet()).to.equal("Hola, mundo!");
   }).timeout(10000);;
 });

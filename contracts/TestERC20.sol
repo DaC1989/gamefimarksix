@@ -64,7 +64,6 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
      */
     function transfer(address to, uint256 amount) public virtual override returns (bool) {
         address owner = _msgSender();
-        console.log("_msgSender()", _msgSender());
         _transfer(owner, to, amount);
         return true;
     }
@@ -88,6 +87,7 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
      */
     function approve(address spender, uint256 amount) public virtual override returns (bool) {
         address owner = _msgSender();
+        console.log("approve _msgSender", _msgSender());
         _approve(owner, spender, amount);
         return true;
     }
@@ -128,10 +128,12 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
     function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
         address owner = _msgSender();
         uint256 currentAllowance = allowance(owner, spender);
+        console.log("currentAllowance", currentAllowance);
+        console.log("subtractedValue", subtractedValue);
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
-    unchecked {
-        _approve(owner, spender, currentAllowance - subtractedValue);
-    }
+        unchecked {
+            _approve(owner, spender, currentAllowance - subtractedValue);
+        }
 
         return true;
     }
@@ -218,7 +220,6 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
     ) internal virtual {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
-
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
