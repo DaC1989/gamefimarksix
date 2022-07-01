@@ -22,7 +22,12 @@ contract LotteryManager {
     mapping(address => string) private tableHash;
     mapping(address => uint256) private tablePool;
 
+    mapping(address => ILotteryTable.TableInfo) private waitEdit;
+
     event CreateTableIfNecessary(string hash);
+    event EditTable(string beforeHash, string newHash);
+    event JoinTable(address player, uint256 count, uint256 number, string hash);
+    event StartRound(string hash, uint256 round, uint256 roundResult, address[] roundWinnerArray, address[] allPlayers);
 
     constructor(address _factory, address _tokenAddress) {
         factory = _factory;
@@ -56,12 +61,32 @@ contract LotteryManager {
         emit CreateTableIfNecessary(hashString);
     }
 
+    //msg.sender is mananger
     function editTable(string memory hashString, ILotteryTable.TableInfo memory tableInfo) external onlyManagerOwner {
         address tableAddress = hashTable[hashString];
         require(tableAddress != address(0), "no table with the hash, please check the hash!");
 
-        LotteryTable lotteryTable = LotteryTable(tableAddress);
+        waitEdit[tableAddress] = tableInfo;
+    }
 
+    function _editTable(address tableAddress) private returns(bool){
+        ILotteryTable.TableInfo memory tableInfo = waitEdit[tableAddress];
+        if(tableInfo.creator != address(0)) {
+            string memory beforeHash = tableHash[tableAddress];
+            LotteryTable lotteryTable = LotteryTable(tableAddress);
+            lotteryTable.updateTableInfo(tableInfo);
+            //
+            uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
+            hashTable[hash.toString()] = tableAddress;
+            tableHash[tableAddress] = hash.toString();
+
+            //
+            delete waitEdit[tableAddress];
+            emit EditTable(beforeHash, hash.toString());
+            return true;
+        } else {
+            return false;
+        }
     }
 
     //msg.sender is player
@@ -81,6 +106,7 @@ contract LotteryManager {
         lotteryTable.joinTable(joinInfo);
         _afterJoinTable(count, tableInfo, tableAddress);
 
+        emit JoinTable(msg.sender, count, number, hash.toString());
         result = true;
     }
 
@@ -88,8 +114,10 @@ contract LotteryManager {
     // count: 下注数量, number:下注数字, tableInfo:创建合约参数
     function joinTableV2(uint256 count, uint256 number, string memory hash)
     external payable returns (bool result) {
+        console.log("hash is", hash);
         address referraler = referralMap[msg.sender];
         address tableAddress = hashTable[hash];
+        console.log("tableAddress is", tableAddress);
         require(tableAddress != address(0), "no table with the hash, please check the hash!");
 
         LotteryTable lotteryTable = LotteryTable(tableAddress);
@@ -99,6 +127,7 @@ contract LotteryManager {
         ILotteryTable.TableInfo memory tableInfo = lotteryTable.getTableInfo();
         _afterJoinTable(count, tableInfo, tableAddress);
 
+        emit JoinTable(msg.sender, count, number, hash);
         result = true;
     }
 
@@ -160,6 +189,10 @@ contract LotteryManager {
         address[] memory allPlayers = lotteryTable.getAllPlayers();
         //_reset
         lotteryTable.reset();
+        //
+        _editTable(tableAddress);
+        //
+        emit StartRound(hash.toString(), round, roundResult, roundWinnerArray, allPlayers);
         //return
         return (round, roundResult, roundWinnerArray, allPlayers);
     }
@@ -197,6 +230,10 @@ contract LotteryManager {
         address[] memory allPlayers = lotteryTable.getAllPlayers();
         //_reset
         lotteryTable.reset();
+        //尝试修改桌子
+        _editTable(tableAddress);
+        //
+        emit StartRound(hash, round, roundResult, roundWinnerArray, allPlayers);
         //return
         return (round, roundResult, roundWinnerArray, allPlayers);
     }

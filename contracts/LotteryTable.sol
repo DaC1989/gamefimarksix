@@ -18,7 +18,7 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     using Counters for Counters.Counter;
 
     address public immutable factory;
-    TableInfo public tableInfo;
+    TableInfo private tableInfo;
     RoundInfo roundInfo = new RoundInfo();
     uint256[] private _playersCount;
     Counters.Counter private _roundCount;
@@ -42,12 +42,8 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
                                 bankerWallet:params.bankerWallet});
     }
 
-    function editTableInfo(TableInfo memory tableInfo) external nonReentrant {
-
-    }
-
     //msg.sender is manager
-    function joinTable(JoinInfo memory joinInfo) external override payable {
+    function joinTable(JoinInfo memory joinInfo) external override {
         require(roundInfo.getCount(joinInfo.player) == 0, "duplicated bet!");
 
         roundInfo.pushPlayers(joinInfo.player);
@@ -98,6 +94,11 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
 
     function nextRound() external view returns(uint256 round) {
         round = _roundCount.current() + 1;
+    }
+
+    function updateTableInfo(TableInfo memory _tableInfo) external {
+        delete tableInfo;
+        tableInfo = _tableInfo;
     }
 
 }

@@ -22,6 +22,6 @@ interface ILotteryTable {
         address referraler;
     }
 
-    function joinTable(JoinInfo memory joinInfo) external payable;
+    function joinTable(JoinInfo memory joinInfo) external;
 
 }
