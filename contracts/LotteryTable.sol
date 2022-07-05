@@ -5,7 +5,6 @@ import "./interfaces/ILotteryTableDeployer.sol";
 import "./interfaces/ILotteryFactory.sol";
 import "./interfaces/ILotteryTable.sol";
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -23,8 +22,6 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     RoundInfo roundInfo = new RoundInfo();
     uint256[] private _playersCount;//玩家下注数
     Counters.Counter private _roundCount;
-
-    address[] private _robots;
 
     modifier onlyFactoryOwner() {
         require(msg.sender == ILotteryFactory(factory).owner());
@@ -53,7 +50,7 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
 
     //msg.sender is manager contract
     function joinTable(JoinInfo memory joinInfo) onlyManagerContract external override {
-        require(roundInfo.getCount(joinInfo.player) == 0, "duplicated bet!");
+        require(roundInfo.getCount(joinInfo.player) == 0, "Duplicated bet!");
 
         _joinTable(joinInfo);
     }
@@ -64,7 +61,6 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
         roundInfo.setNumber(joinInfo.player, joinInfo.number);
         roundInfo.addNumberCount(joinInfo.number, joinInfo.count);
     }
-
 
     //msg.sender is manager contract
     function start() external nonReentrant onlyManagerContract returns(uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) {

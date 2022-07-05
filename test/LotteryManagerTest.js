@@ -139,12 +139,19 @@ describe("LotteryManager", function () {
         for (const event of joinTableV2TxReceipt.events) {
             console.log(`joinTableV2TxReceipt ${event.event} with args ${event.args}`);
         }
-        //
+        //edit table
+        const editTableTx = await lotteryManager.editTable(hash, tableInfo);
+        const editTableTxReceipt = await editTableTx.wait();
+        for (const event of editTableTxReceipt.events) {
+            console.log(`editTableTxReceipt ${event.event} with args ${event.args}`);
+        }
+        //start round
         await erc20.approve(lotteryManager.address, erc20.balanceOf(signers[0].address));
         const startRoundTx = await lotteryManager.startRoundV2(hash);
         const startRoundTxReceipt = await startRoundTx.wait();
         for (const event of startRoundTxReceipt.events) {
             console.log(`startRoundTxReceipt ${event.event} with args ${event.args}`);
         }
+
     }).timeout(10000);
 });

@@ -16,7 +16,7 @@ contract LotteryManager {
 
     address public immutable factory;
     IERC20 private token;
-    address owner;
+    address public owner;
     mapping(address => address) private referralMap;
     mapping(string => address) private hashTable;
     mapping(address => string) private tableHash;
@@ -74,17 +74,19 @@ contract LotteryManager {
 
     function _editTable(address tableAddress) private returns(bool){
         ILotteryTable.TableInfo memory tableInfo = waitEdit[tableAddress];
+        console.log("ask", tableInfo.minPPL);
         if(tableInfo.creator != address(0)) {
             string memory beforeHash = tableHash[tableAddress];
             LotteryTable lotteryTable = LotteryTable(tableAddress);
             lotteryTable.updateTableInfo(tableInfo);
-            //
+            console.log("now", lotteryTable.getTableInfo().minPPL);
+            //更新hash
             uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
             hashTable[hash.toString()] = tableAddress;
             tableHash[tableAddress] = hash.toString();
-
-            //
+            //删除数据
             delete waitEdit[tableAddress];
+            console.log("beforeHash, hash.toString()", beforeHash, hash.toString());
             emit EditTable(beforeHash, hash.toString());
             return true;
         } else {
