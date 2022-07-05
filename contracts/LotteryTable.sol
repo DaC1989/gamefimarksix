@@ -18,18 +18,27 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     using Counters for Counters.Counter;
 
     address public immutable factory;
+    address public immutable managerContract;
     TableInfo private tableInfo;
     RoundInfo roundInfo = new RoundInfo();
-    uint256[] private _playersCount;
+    uint256[] private _playersCount;//玩家下注数
     Counters.Counter private _roundCount;
+
+    address[] private _robots;
 
     modifier onlyFactoryOwner() {
         require(msg.sender == ILotteryFactory(factory).owner());
         _;
     }
 
+    modifier onlyManagerContract() {
+        require(msg.sender == managerContract);
+        _;
+    }
+
     constructor() {
         ILotteryTableDeployer.Parameters memory params = ILotteryTableDeployer(msg.sender).getParameters();
+        managerContract = params.managerContract;
         factory = params.factory;
         tableInfo =  TableInfo({creator: params.creator,
                                 amount:params.amount,
@@ -42,25 +51,30 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
                                 bankerWallet:params.bankerWallet});
     }
 
-    //msg.sender is manager
-    function joinTable(JoinInfo memory joinInfo) external override {
+    //msg.sender is manager contract
+    function joinTable(JoinInfo memory joinInfo) onlyManagerContract external override {
         require(roundInfo.getCount(joinInfo.player) == 0, "duplicated bet!");
 
+        _joinTable(joinInfo);
+    }
+
+    function _joinTable(JoinInfo memory joinInfo) private {
         roundInfo.pushPlayers(joinInfo.player);
         roundInfo.setCount(joinInfo.player, joinInfo.count);
         roundInfo.setNumber(joinInfo.player, joinInfo.number);
         roundInfo.addNumberCount(joinInfo.number, joinInfo.count);
     }
 
-    //msg.sender is manager
-    function start() external nonReentrant returns(uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) {
+
+    //msg.sender is manager contract
+    function start() external nonReentrant onlyManagerContract returns(uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) {
         _roundCount.increment();
         round = _roundCount.current();
+
         uint256 randomNumber = _getRandom(roundInfo.getPlayers().length);
         roundResult = randomNumber.mod(10);
         roundWinnerArray = roundInfo.getNumberPlayers(roundResult);
         allCount = roundInfo.getNumberCount(roundResult);
-
         if (roundWinnerArray.length > 0) {
             for (uint256 i = 0; i < roundWinnerArray.length; i++) {
                 address winner = roundWinnerArray[i];
@@ -69,11 +83,10 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
             }
         }
         playersCount = _playersCount;
-        //allPlayers = roundInfo.getPlayers();
     }
 
     //重置游戏数据
-    function reset() external returns (bool) {
+    function reset() external onlyManagerContract returns (bool) {
         delete roundInfo;
         delete _playersCount;
         roundInfo = new RoundInfo();
@@ -96,7 +109,7 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
         round = _roundCount.current() + 1;
     }
 
-    function updateTableInfo(TableInfo memory _tableInfo) external {
+    function updateTableInfo(TableInfo memory _tableInfo) external onlyManagerContract {
         delete tableInfo;
         tableInfo = _tableInfo;
     }

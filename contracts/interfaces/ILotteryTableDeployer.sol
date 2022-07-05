@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 interface ILotteryTableDeployer {
 
     struct Parameters {
+        address managerContract;
         address factory;
         address creator;
         uint256 amount;

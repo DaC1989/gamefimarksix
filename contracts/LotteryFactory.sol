@@ -27,7 +27,7 @@ contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall
     }
 
     //TODO 测试是否安全
-    function createTable(address creator, uint256 amount, uint256 minPPL,
+    function createTable(address managerContract, address creator, uint256 amount, uint256 minPPL,
         uint256 maxPPL, uint256 coolDownTime, uint256 gameTime,
         uint256 bankerCommission, uint256 referralCommission, address bankerWallet)
     external override noDelegateCall
@@ -43,9 +43,8 @@ contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall
         require(bankerWallet != address(0));
 
         uint256 hash = uint256(keccak256(abi.encodePacked(amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
-        console.log("hash", hash);
         require(tableMap[creator][hash] == address(0));
-        table = deploy(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
+        table = deploy(managerContract, address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
         tableMap[creator][hash] = table;
 
         emit tableCreated(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);

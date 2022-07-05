@@ -15,7 +15,7 @@ contract LotteryManager {
     using Strings for uint256;
 
     address public immutable factory;
-    IERC20 public token;
+    IERC20 private token;
     address owner;
     mapping(address => address) private referralMap;
     mapping(string => address) private hashTable;
@@ -27,6 +27,7 @@ contract LotteryManager {
     event CreateTableIfNecessary(string hash);
     event EditTable(string beforeHash, string newHash);
     event JoinTable(address player, uint256 count, uint256 number, string hash);
+    //table的hash、第几轮、开奖结果、赢家、所有玩家
     event StartRound(string hash, uint256 round, uint256 roundResult, address[] roundWinnerArray, address[] allPlayers);
 
     constructor(address _factory, address _tokenAddress) {
@@ -50,13 +51,15 @@ contract LotteryManager {
         require(msg.sender == owner, "Only contract owner is allowed to call this function");
         address table = ILotteryFactory(factory).getTable(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
         if (table == address(0)) {
-            table = ILotteryFactory(factory).createTable(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
+            table = ILotteryFactory(factory).createTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
+
         }
-        console.log("table is:", table);
         uint256 hash = uint256(keccak256(abi.encode(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
         hashString = hash.toString();
         hashTable[hashString] = table;
         tableHash[table] = hashString;
+        console.log("table is:", table);
+        console.log("hashString is:", hashString);
 
         emit CreateTableIfNecessary(hashString);
     }
@@ -64,7 +67,7 @@ contract LotteryManager {
     //msg.sender is mananger
     function editTable(string memory hashString, ILotteryTable.TableInfo memory tableInfo) external onlyManagerOwner {
         address tableAddress = hashTable[hashString];
-        require(tableAddress != address(0), "no table with the hash, please check the hash!");
+        require(tableAddress != address(0), "No table with the hash, please check the hash!");
 
         waitEdit[tableAddress] = tableInfo;
     }
@@ -91,27 +94,6 @@ contract LotteryManager {
 
     //msg.sender is player
     // count: 下注数量, number:下注数字, tableInfo:创建合约参数
-    function joinTableV1(uint256 count, uint256 number, ILotteryTable.TableInfo memory tableInfo)
-    external payable returns (bool result) {
-        address referraler = referralMap[msg.sender];
-        uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
-        address tableAddress = hashTable[hash.toString()];
-        require(tableAddress != address(0), "please check the address!");
-
-        //TableAddress.TableKey memory tableKey = TableAddress.TableKey({factory: factory, creator: tableInfo.creator, amount: tableInfo.amount, minPPL:tableInfo.minPPL, maxPPL: tableInfo.maxPPL, coolDownTime: tableInfo.coolDownTime, gameTime: tableInfo.gameTime, bankerCommission: tableInfo.bankerCommission, referralCommission: tableInfo.referralCommission, bankerWallet: tableInfo.bankerWallet});
-        //address tableAddress = TableAddress.computeAddressV1(factory, tableKey);
-
-        LotteryTable lotteryTable = LotteryTable(tableAddress);
-        ILotteryTable.JoinInfo memory joinInfo = ILotteryTable.JoinInfo({player: msg.sender, count:count, number: number, referraler:referraler});
-        lotteryTable.joinTable(joinInfo);
-        _afterJoinTable(count, tableInfo, tableAddress);
-
-        emit JoinTable(msg.sender, count, number, hash.toString());
-        result = true;
-    }
-
-    //msg.sender is player
-    // count: 下注数量, number:下注数字, tableInfo:创建合约参数
     function joinTableV2(uint256 count, uint256 number, string memory hash)
     external payable returns (bool result) {
         console.log("hash is", hash);
@@ -131,85 +113,48 @@ contract LotteryManager {
         result = true;
     }
 
-    function _afterJoinTable(uint256 count, ILotteryTable.TableInfo memory tableInfo, address tableAddress) internal {
+    function _afterJoinTable(uint256 count, ILotteryTable.TableInfo memory tableInfo, address tableAddress) private {
         uint256 betAmount = count.mul(tableInfo.amount);
-        //转给manager
+        //player转给manager contract
+        console.log("_afterJoinTable", msg.sender);
         token.transferFrom(msg.sender, address(this), betAmount);
         console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
         //增加资金池
         tablePool[tableAddress] += betAmount;
+
         //bankerCommission
         uint256 bankerCommissionAmount = betAmount.div(10000).mul(tableInfo.bankerCommission);
-        require(tablePool[tableAddress] > bankerCommissionAmount, "pool not enough for bankerCommission!");
+        require(tablePool[tableAddress] > bankerCommissionAmount, "Table pool not enough for bankerCommission!");
         //减少资金池
         tablePool[tableAddress] -= bankerCommissionAmount;
         token.transfer(tableInfo.bankerWallet, bankerCommissionAmount);
         console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
+
         //referralCommission
         address referraler = referralMap[msg.sender];
         if (referraler != address(0)) {
             uint256 referralCommission = betAmount.div(10000).mul(tableInfo.referralCommission);
-            require(tablePool[tableAddress] > referralCommission, "pool not enough for referralCommission!");
+            require(tablePool[tableAddress] > referralCommission, "Table pool not enough for referralCommission!");
             //减少资金池
             tablePool[tableAddress] -= referralCommission;
             token.transfer(referraler, referralCommission);
         }
     }
 
-    //msg.sender is manager
-    //启动一局
-    //tableInfo:创建合约参数
-    //return(第几局，开奖结果，赢家，所有玩家)
-    function startRoundV1(ILotteryTable.TableInfo memory tableInfo) external onlyManagerOwner payable returns (uint256, uint256, address[] memory, address[] memory ) {
-        uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
-        address tableAddress = hashTable[hash.toString()];
-        require(tableAddress != address(0), "please check the address!");
-
-        LotteryTable lotteryTable = LotteryTable(tableAddress);
-        (uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) = lotteryTable.start();
-        console.log("roundResult", roundResult);
-
-        //根据结果转账
-        if (roundWinnerArray.length == 0) {
-            //没有赢家就全部转给banker
-            tablePool[tableAddress] = 0;
-            token.transfer(tableInfo.bankerWallet, tablePool[tableAddress]);
-        } else {
-            uint256 poolAmount = tablePool[tableAddress];
-            for (uint256 i = 0; i < roundWinnerArray.length; i++) {
-                address winner = roundWinnerArray[i];
-                uint256 count = playersCount[i];
-                //给赢家转账
-                uint256 winAmount = poolAmount.div(allCount).mul(count);
-                require(tablePool[tableAddress] > winAmount, "pool not enough for winAmount!");
-                tablePool[tableAddress] -= winAmount;
-                token.transfer(winner, winAmount);
-            }
-        }
-        address[] memory allPlayers = lotteryTable.getAllPlayers();
-        //_reset
-        lotteryTable.reset();
-        //
-        _editTable(tableAddress);
-        //
-        emit StartRound(hash.toString(), round, roundResult, roundWinnerArray, allPlayers);
-        //return
-        return (round, roundResult, roundWinnerArray, allPlayers);
-    }
-
-    //msg.sender is manager
+    //msg.sender is manager owner
     //启动一局
     //hash:合约hash
     //return(第几局，开奖结果，赢家，所有玩家)
-    function startRoundV2(string memory hash) external onlyManagerOwner payable returns (uint256, uint256, address[] memory, address[] memory) {
+    function startRoundV2(string memory hash) external onlyManagerOwner payable returns (bool) {
         address tableAddress = hashTable[hash];
         require(tableAddress != address(0), "please check the address!");
 
         LotteryTable lotteryTable = LotteryTable(tableAddress);
         ILotteryTable.TableInfo memory tableInfo = lotteryTable.getTableInfo();
+        //机器人下注
+        _robotJoinTable(tableInfo, tableAddress);
+        //获取开奖结果
         (uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) = lotteryTable.start();
-        console.log("roundResult", roundResult);
-
         //根据结果转账
         if (roundWinnerArray.length == 0) {
             //没有赢家就全部转给banker
@@ -222,20 +167,44 @@ contract LotteryManager {
                 uint256 count = playersCount[i];
                 //给赢家转账
                 uint256 winAmount = poolAmount.div(allCount).mul(count);
-                require(tablePool[tableAddress] > winAmount, "pool not enough for winAmount!");
+                require(tablePool[tableAddress] > winAmount, "table pool not enough for winAmount!");
                 token.transfer(winner, winAmount);
                 tablePool[tableAddress] -= winAmount;
             }
         }
-        address[] memory allPlayers = lotteryTable.getAllPlayers();
         //_reset
         lotteryTable.reset();
         //尝试修改桌子
         _editTable(tableAddress);
-        //
+        //事件
+        address[] memory allPlayers = lotteryTable.getAllPlayers();
         emit StartRound(hash, round, roundResult, roundWinnerArray, allPlayers);
-        //return
-        return (round, roundResult, roundWinnerArray, allPlayers);
+        return true;
+    }
+
+    function _robotJoinTable(ILotteryTable.TableInfo memory tableInfo, address tableAddress) private {
+        LotteryTable lotteryTable = LotteryTable(tableAddress);
+        address[] memory allPlayers = lotteryTable.getAllPlayers();
+        uint256 allPlayersLength = allPlayers.length;
+        if(allPlayersLength < tableInfo.minPPL) {
+            uint256 gap = tableInfo.minPPL.sub(allPlayersLength);
+            //机器人下注
+            for(uint256 i = 0; i < gap; i++) {
+                console.log("add robot ", i);
+                uint256 number = _getRandom(i).mod(10);
+                address robotAddress = address(uint160(i));
+                console.log("robots address", robotAddress);
+                console.log("robots address uint160", uint160(robotAddress));
+                //
+                ILotteryTable.JoinInfo memory joinInfo = ILotteryTable.JoinInfo({player:robotAddress, count: 1, number:number, referraler:address(0)});
+                lotteryTable.joinTable(joinInfo);
+                _afterJoinTable(1, tableInfo, tableAddress);
+            }
+        }
+    }
+
+    function _getRandom(uint256 playersLength) private view returns(uint256 randomNumber) {
+        randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, playersLength)));
     }
 
     function _afterRound() internal {}

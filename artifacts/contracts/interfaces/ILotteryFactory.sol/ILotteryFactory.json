@@ -87,6 +87,11 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "managerContract",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
           "name": "creator",
           "type": "address"
         },

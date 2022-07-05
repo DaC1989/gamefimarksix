@@ -16,7 +16,7 @@ interface ILotteryFactory {
         uint256 maxPPL, uint256 coolDownTime, uint256 gameTime,
         uint256 bankerCommission, uint256 referralCommission, address bankerWallet) external view returns (address table);
 
-    function createTable(address creator, uint256 amount, uint256 minPPL,
+    function createTable(address managerContract, address creator, uint256 amount, uint256 minPPL,
         uint256 maxPPL, uint256 coolDownTime, uint256 gameTime,
         uint256 bankerCommission, uint256 referralCommission, address bankerWallet) external returns (address table);
 

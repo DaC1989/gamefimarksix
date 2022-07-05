@@ -11,6 +11,11 @@
           "components": [
             {
               "internalType": "address",
+              "name": "managerContract",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
               "name": "factory",
               "type": "address"
             },

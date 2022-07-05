@@ -114,6 +114,7 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
         uint256 amount
     ) public virtual override returns (bool) {
         address spender = _msgSender();
+        console.log("transferFrom", from, spender, amount);
         _spendAllowance(from, spender, amount);
         _transfer(from, to, amount);
         return true;
@@ -128,8 +129,6 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
     function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
         address owner = _msgSender();
         uint256 currentAllowance = allowance(owner, spender);
-        console.log("currentAllowance", currentAllowance);
-        console.log("subtractedValue", subtractedValue);
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
         unchecked {
             _approve(owner, spender, currentAllowance - subtractedValue);
