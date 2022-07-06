@@ -36,6 +36,7 @@ contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall
         require(amount > 0);
         require(minPPL > 0);
         require(maxPPL > 0);
+        require(maxPPL >= maxPPL);
         require(coolDownTime > 0);
         require(gameTime > 0);
         require(bankerCommission > 0);

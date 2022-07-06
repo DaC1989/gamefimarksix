@@ -111,16 +111,17 @@ describe("LotteryManager", function () {
         await lotteryManager.deployed();
         console.log("LotteryManager deployed to:", lotteryManager.address);
 
-        //player approve
-        await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('1', 'ether'));
-
         const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
-            Web3.utils.toWei('1', 'ether'), 3, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
+            Web3.utils.toWei('1.111111111111111111', 'ether'), 10, 10, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
         await createTableIfNecessary.wait();
 
         const receipt = await createTableIfNecessary.wait()
+        let hashString = "";
         for (const event of receipt.events) {
             console.log(`createTableIfNecessary ${event.event} with args ${event.args}`);
+            if (event.event == 'CreateTableIfNecessary') {
+                hashString = event.args[0];
+            }
         }
 
         const tableInfo = {"creator": "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
@@ -133,21 +134,22 @@ describe("LotteryManager", function () {
             "referralCommission":1,
             "bankerWallet":"0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd"};
 
-        const hash = "65605426576670586438468207815818698174240285848462598458445825601241868499858";
-        const joinTableV2Tx = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hash);
+        //player approve
+        await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('1.111111111111111111', 'ether'));
+        const joinTableV2Tx = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString);
         const joinTableV2TxReceipt = await joinTableV2Tx.wait();
         for (const event of joinTableV2TxReceipt.events) {
             console.log(`joinTableV2TxReceipt ${event.event} with args ${event.args}`);
         }
         //edit table
-        const editTableTx = await lotteryManager.editTable(hash, tableInfo);
+        const editTableTx = await lotteryManager.editTable(hashString, tableInfo);
         const editTableTxReceipt = await editTableTx.wait();
         for (const event of editTableTxReceipt.events) {
             console.log(`editTableTxReceipt ${event.event} with args ${event.args}`);
         }
         //start round
         await erc20.approve(lotteryManager.address, erc20.balanceOf(signers[0].address));
-        const startRoundTx = await lotteryManager.startRoundV2(hash);
+        const startRoundTx = await lotteryManager.startRoundV2(hashString);
         const startRoundTxReceipt = await startRoundTx.wait();
         for (const event of startRoundTxReceipt.events) {
             console.log(`startRoundTxReceipt ${event.event} with args ${event.args}`);

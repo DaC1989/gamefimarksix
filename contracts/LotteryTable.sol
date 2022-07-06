@@ -57,6 +57,7 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
 
     function _joinTable(JoinInfo memory joinInfo) private {
         roundInfo.pushPlayers(joinInfo.player);
+        roundInfo.setNumberPlayers(joinInfo.number, joinInfo.player);
         roundInfo.setCount(joinInfo.player, joinInfo.count);
         roundInfo.setNumber(joinInfo.player, joinInfo.number);
         roundInfo.addNumberCount(joinInfo.number, joinInfo.count);

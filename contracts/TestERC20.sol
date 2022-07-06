@@ -144,6 +144,7 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
     ) internal virtual {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
+        console.log("_transfer", from, to, amount);
 
         _beforeTokenTransfer(from, to, amount);
 

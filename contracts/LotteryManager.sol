@@ -98,7 +98,7 @@ contract LotteryManager {
     // count: 下注数量, number:下注数字, tableInfo:创建合约参数
     function joinTableV2(uint256 count, uint256 number, string memory hash)
     external payable returns (bool result) {
-        console.log("hash is", hash);
+        console.log("joinTableV2 hash is", hash);
         address referraler = referralMap[msg.sender];
         address tableAddress = hashTable[hash];
         console.log("tableAddress is", tableAddress);
@@ -119,24 +119,29 @@ contract LotteryManager {
         uint256 betAmount = count.mul(tableInfo.amount);
         //player转给manager contract
         console.log("_afterJoinTable", msg.sender);
+        console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
         token.transferFrom(msg.sender, address(this), betAmount);
         console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
         //增加资金池
         tablePool[tableAddress] += betAmount;
 
         //bankerCommission
-        uint256 bankerCommissionAmount = betAmount.div(10000).mul(tableInfo.bankerCommission);
-        require(tablePool[tableAddress] > bankerCommissionAmount, "Table pool not enough for bankerCommission!");
-        //减少资金池
-        tablePool[tableAddress] -= bankerCommissionAmount;
-        token.transfer(tableInfo.bankerWallet, bankerCommissionAmount);
-        console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
+        console.log("betAmount, tableInfo.bankerCommission", betAmount, tableInfo.bankerCommission);
+        if (tableInfo.bankerCommission > 0) {
+            uint256 bankerCommissionAmount = betAmount.div(10000).mul(tableInfo.bankerCommission);
+            console.log("bankerCommissionAmount", bankerCommissionAmount);
+            require(tablePool[tableAddress] >= bankerCommissionAmount, "Table pool not enough for bankerCommission!");
+            //减少资金池
+            tablePool[tableAddress] -= bankerCommissionAmount;
+            token.transfer(tableInfo.bankerWallet, bankerCommissionAmount);
+            console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
+        }
 
         //referralCommission
         address referraler = referralMap[msg.sender];
-        if (referraler != address(0)) {
+        if (referraler != address(0) && tableInfo.referralCommission > 0) {
             uint256 referralCommission = betAmount.div(10000).mul(tableInfo.referralCommission);
-            require(tablePool[tableAddress] > referralCommission, "Table pool not enough for referralCommission!");
+            require(tablePool[tableAddress] >= referralCommission, "Table pool not enough for referralCommission!");
             //减少资金池
             tablePool[tableAddress] -= referralCommission;
             token.transfer(referraler, referralCommission);
@@ -146,7 +151,6 @@ contract LotteryManager {
     //msg.sender is manager owner
     //启动一局
     //hash:合约hash
-    //return(第几局，开奖结果，赢家，所有玩家)
     function startRoundV2(string memory hash) external onlyManagerOwner payable returns (bool) {
         address tableAddress = hashTable[hash];
         require(tableAddress != address(0), "please check the address!");
@@ -157,21 +161,34 @@ contract LotteryManager {
         _robotJoinTable(tableInfo, tableAddress);
         //获取开奖结果
         (uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) = lotteryTable.start();
+        console.log("roundResult", roundResult);
         //根据结果转账
+        uint256 poolAmount = tablePool[tableAddress];
+        console.log("poolAmount", poolAmount);
         if (roundWinnerArray.length == 0) {
             //没有赢家就全部转给banker
-            token.transfer(tableInfo.bankerWallet, tablePool[tableAddress]);
             tablePool[tableAddress] = 0;
+            token.transfer(tableInfo.bankerWallet, poolAmount);
         } else {
-            uint256 poolAmount = tablePool[tableAddress];
             for (uint256 i = 0; i < roundWinnerArray.length; i++) {
                 address winner = roundWinnerArray[i];
                 uint256 count = playersCount[i];
+                console.log("count, allCount", count, allCount);
                 //给赢家转账
                 uint256 winAmount = poolAmount.div(allCount).mul(count);
-                require(tablePool[tableAddress] > winAmount, "table pool not enough for winAmount!");
-                token.transfer(winner, winAmount);
+                console.log("winAmount", winAmount);
+                require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
                 tablePool[tableAddress] -= winAmount;
+                console.log("winner", winner);
+                if (uint160(winner) < uint160(1000000000)) {
+                    console.log("token.balanceOf(msg.sender)", token.balanceOf(msg.sender));
+                    token.transfer(msg.sender, winAmount);
+                    console.log("token.balanceOf(msg.sender)", token.balanceOf(msg.sender));
+                } else {
+                    console.log("token.balanceOf(winner)", token.balanceOf(winner));
+                    token.transfer(winner, winAmount);
+                    console.log("token.balanceOf(winner)", token.balanceOf(winner));
+                }
             }
         }
         //_reset
@@ -197,6 +214,7 @@ contract LotteryManager {
                 address robotAddress = address(uint160(i));
                 console.log("robots address", robotAddress);
                 console.log("robots address uint160", uint160(robotAddress));
+                console.log("robots number", number);
                 //
                 ILotteryTable.JoinInfo memory joinInfo = ILotteryTable.JoinInfo({player:robotAddress, count: 1, number:number, referraler:address(0)});
                 lotteryTable.joinTable(joinInfo);
