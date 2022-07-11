@@ -112,9 +112,7 @@ describe("LotteryManager", function () {
         console.log("LotteryManager deployed to:", lotteryManager.address);
 
         const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
-            Web3.utils.toWei('1.111111111111111111', 'ether'), 10, 10, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
-        await createTableIfNecessary.wait();
-
+            Web3.utils.toWei('1', 'ether'), 10, 10, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
         const receipt = await createTableIfNecessary.wait()
         let hashString = "";
         for (const event of receipt.events) {

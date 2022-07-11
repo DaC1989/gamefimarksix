@@ -17,7 +17,7 @@ contract LotteryTableDeployer is ILotteryTableDeployer{
         uint256 bankerCommission, uint256 referralCommission, address bankerWallet)
     internal returns (address table) {
         params = Parameters({managerContract:managerContract, factory: factory, creator: creator, amount: amount, minPPL: minPPL, maxPPL:maxPPL, coolDownTime:coolDownTime, gameTime:gameTime, bankerCommission:bankerCommission, referralCommission:referralCommission, bankerWallet:bankerWallet });
-        table = address(new LotteryTable{salt: keccak256(abi.encode(amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet))}());
+        table = address(new LotteryTable{salt: keccak256(abi.encode(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet))}());
         delete params;
     }
 
