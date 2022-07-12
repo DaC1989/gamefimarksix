@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<button onclick="getTronweb()">Can you get tronweb from tronlink?</button>
+<script src="./TronWeb.js"></script>
+<script>
+    // const tronWeb = new TronWeb({
+    //     fullHost: 'https://api.shasta.trongrid.io',
+    //     headers: { "TRON-PRO-API-KEY": '9490427e-8b9b-4eac-9541-5882f181fdd2' },
+    //     privateKey: '437afe64d2519921904bc2517638f1b83ad7dbe1f437919bcbe0081941504e8f'
+    // })
+
+    if (window.tronLink) {
+        console.log("Tronlink installed");
+    } else {
+        console.log("please install Tronlink");
+    }
+
+    function getTronweb() {
+        var obj = setInterval(async () => {
+            if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+                clearInterval(obj)
+                console.log("Yes, catch it:", window.tronWeb.defaultAddress.base58);
+                await sendTrx();
+            } else {
+                console.log("please install Tronlink");
+            }
+        }, 10);
+
+    }
+    async function sendTrx() {
+        // 200：ok，4000：在队列中，不需要重复提交， 4001：user rejected
+        let {code, message} = await window.tronLink.request({method: 'tron_requestAccounts'})
+        console.log("code, message", code, message);
+        if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+            var tronweb = window.tronWeb
+            var tx = await tronweb.transactionBuilder.sendTrx('TD2W4i3Lb5tzqstqDxKgDbHhtzeTgzTPp4', 10, 'TXf5yeQTcn1bzqo6NzJhn4dxVPXwsEUBKW')
+            console.log(111)
+            var signedTx = await tronweb.trx.sign(tx)
+            var broastTx = await tronweb.trx.sendRawTransaction(signedTx)
+            console.log(broastTx)
+        }
+    }
+</script>
+</body>
+</html>

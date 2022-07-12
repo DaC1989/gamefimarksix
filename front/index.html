@@ -1,0 +1,62 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<meta charset="UTF-8">
+
+<head>
+  <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.7.1/dist/web3.min.js"></script>
+  <script type="text/javascript">
+
+  async function test() {
+      if (window.ethereum) {
+        try {
+          //add network
+          await window.ethereum.request({ method: 'wallet_addEthereumChain', 
+            params: [
+                {
+                    chainId: '0x61',
+                    chainName: 'Binance Smart Chain Testnet',
+                    nativeCurrency: {
+                        name: 'tBNB',
+                        symbol: 'tBNB',
+                        decimals: 18,
+                    },
+                    rpcUrls: ['https://bsc-testnet.web3api.com/v1/FE3K26WKD1VF2FQZ922MU9D53CVMT4FI22/'],
+                    blockExplorerUrls: ['https://testnet.bscscan.com/'],
+                },
+            ],
+
+          });
+
+          var accounts = await window.ethereum.request({ method: 'eth_requestAccounts'});
+
+          //new contract object
+          var abi = [{"inputs":[{"internalType":"string","name":"_greeting","type":"string"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"greet","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_greeting","type":"string"}],"name":"setGreeting","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+
+          var web3 = new Web3(window.ethereum);
+
+          var contractAddress = '0xDF628E2804e9536B861970F446E0419a2e5B9287';
+          var contract = new web3.eth.Contract(abi, contractAddress);
+
+          var result1 = await contract.methods.greet().call();
+          console.log(result1);
+
+          var result2 = await contract.methods.setGreeting("hi").send({
+              from: accounts[0]
+          });
+          console.log(result2);
+
+        } catch (error) {
+          console.log(error);
+        }
+      } 
+    }
+  </script>
+</head>
+
+<body>
+
+
+<button onclick="test()">Test</button>
+</body>
+
+</html>
