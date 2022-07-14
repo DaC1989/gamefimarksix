@@ -1,0 +1,1023 @@
+{
+  "contractName": "ILotteryTable",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "player",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "count",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "referraler",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct ILotteryTable.JoinInfo",
+          "name": "joinInfo",
+          "type": "tuple"
+        }
+      ],
+      "name": "joinTable",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "//SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.0;\n\ninterface ILotteryTable {\n\n    struct TableInfo {\n        address creator;\n        uint256 amount;\n        uint256 minPPL;\n        uint256 maxPPL;\n        uint256 coolDownTime;\n        uint256 gameTime;\n        uint256 bankerCommission;\n        uint256 referralCommission;\n        address bankerWallet;\n    }\n\n    struct JoinInfo {\n        address player;\n        uint256 count;\n        uint256 number;\n        address referraler;\n    }\n\n    function joinTable(JoinInfo memory joinInfo) external;\n\n}\n",
+  "sourcePath": "/Users/way/23-tuofan/gamefimarksix/contracts/interfaces/ILotteryTable.sol",
+  "ast": {
+    "absolutePath": "/Users/way/23-tuofan/gamefimarksix/contracts/interfaces/ILotteryTable.sol",
+    "exportedSymbols": {
+      "ILotteryTable": [
+        1905
+      ]
+    },
+    "id": 1906,
+    "license": "UNLICENSED",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1870,
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "38:23:4"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 1905,
+        "linearizedBaseContracts": [
+          1905
+        ],
+        "name": "ILotteryTable",
+        "nameLocation": "73:13:4",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "ILotteryTable.TableInfo",
+            "id": 1889,
+            "members": [
+              {
+                "constant": false,
+                "id": 1872,
+                "mutability": "mutable",
+                "name": "creator",
+                "nameLocation": "129:7:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "121:15:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1871,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "121:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1874,
+                "mutability": "mutable",
+                "name": "amount",
+                "nameLocation": "154:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "146:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1873,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "146:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1876,
+                "mutability": "mutable",
+                "name": "minPPL",
+                "nameLocation": "178:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "170:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1875,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "170:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1878,
+                "mutability": "mutable",
+                "name": "maxPPL",
+                "nameLocation": "202:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "194:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1877,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "194:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1880,
+                "mutability": "mutable",
+                "name": "coolDownTime",
+                "nameLocation": "226:12:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "218:20:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1879,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "218:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1882,
+                "mutability": "mutable",
+                "name": "gameTime",
+                "nameLocation": "256:8:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "248:16:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1881,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "248:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1884,
+                "mutability": "mutable",
+                "name": "bankerCommission",
+                "nameLocation": "282:16:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "274:24:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1883,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "274:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1886,
+                "mutability": "mutable",
+                "name": "referralCommission",
+                "nameLocation": "316:18:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "308:26:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1885,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "308:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1888,
+                "mutability": "mutable",
+                "name": "bankerWallet",
+                "nameLocation": "352:12:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "344:20:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1887,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "344:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "TableInfo",
+            "nameLocation": "101:9:4",
+            "nodeType": "StructDefinition",
+            "scope": 1905,
+            "src": "94:277:4",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "ILotteryTable.JoinInfo",
+            "id": 1898,
+            "members": [
+              {
+                "constant": false,
+                "id": 1891,
+                "mutability": "mutable",
+                "name": "player",
+                "nameLocation": "411:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "403:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1890,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "403:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1893,
+                "mutability": "mutable",
+                "name": "count",
+                "nameLocation": "435:5:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "427:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1892,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "427:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1895,
+                "mutability": "mutable",
+                "name": "number",
+                "nameLocation": "458:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "450:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1894,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "450:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1897,
+                "mutability": "mutable",
+                "name": "referraler",
+                "nameLocation": "482:10:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "474:18:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1896,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "474:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "JoinInfo",
+            "nameLocation": "384:8:4",
+            "nodeType": "StructDefinition",
+            "scope": 1905,
+            "src": "377:122:4",
+            "visibility": "public"
+          },
+          {
+            "functionSelector": "796ab25d",
+            "id": 1904,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "joinTable",
+            "nameLocation": "514:9:4",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1902,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1901,
+                  "mutability": "mutable",
+                  "name": "joinInfo",
+                  "nameLocation": "540:8:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1904,
+                  "src": "524:24:4",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_JoinInfo_$1898_memory_ptr",
+                    "typeString": "struct ILotteryTable.JoinInfo"
+                  },
+                  "typeName": {
+                    "id": 1900,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 1899,
+                      "name": "JoinInfo",
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1898,
+                      "src": "524:8:4"
+                    },
+                    "referencedDeclaration": 1898,
+                    "src": "524:8:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_JoinInfo_$1898_storage_ptr",
+                      "typeString": "struct ILotteryTable.JoinInfo"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "523:26:4"
+            },
+            "returnParameters": {
+              "id": 1903,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "558:0:4"
+            },
+            "scope": 1905,
+            "src": "505:54:4",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 1906,
+        "src": "63:499:4",
+        "usedErrors": []
+      }
+    ],
+    "src": "38:525:4"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/way/23-tuofan/gamefimarksix/contracts/interfaces/ILotteryTable.sol",
+    "exportedSymbols": {
+      "ILotteryTable": [
+        1905
+      ]
+    },
+    "id": 1906,
+    "license": "UNLICENSED",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1870,
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "38:23:4"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 1905,
+        "linearizedBaseContracts": [
+          1905
+        ],
+        "name": "ILotteryTable",
+        "nameLocation": "73:13:4",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "ILotteryTable.TableInfo",
+            "id": 1889,
+            "members": [
+              {
+                "constant": false,
+                "id": 1872,
+                "mutability": "mutable",
+                "name": "creator",
+                "nameLocation": "129:7:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "121:15:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1871,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "121:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1874,
+                "mutability": "mutable",
+                "name": "amount",
+                "nameLocation": "154:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "146:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1873,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "146:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1876,
+                "mutability": "mutable",
+                "name": "minPPL",
+                "nameLocation": "178:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "170:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1875,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "170:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1878,
+                "mutability": "mutable",
+                "name": "maxPPL",
+                "nameLocation": "202:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "194:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1877,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "194:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1880,
+                "mutability": "mutable",
+                "name": "coolDownTime",
+                "nameLocation": "226:12:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "218:20:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1879,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "218:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1882,
+                "mutability": "mutable",
+                "name": "gameTime",
+                "nameLocation": "256:8:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "248:16:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1881,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "248:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1884,
+                "mutability": "mutable",
+                "name": "bankerCommission",
+                "nameLocation": "282:16:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "274:24:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1883,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "274:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1886,
+                "mutability": "mutable",
+                "name": "referralCommission",
+                "nameLocation": "316:18:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "308:26:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1885,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "308:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1888,
+                "mutability": "mutable",
+                "name": "bankerWallet",
+                "nameLocation": "352:12:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1889,
+                "src": "344:20:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1887,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "344:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "TableInfo",
+            "nameLocation": "101:9:4",
+            "nodeType": "StructDefinition",
+            "scope": 1905,
+            "src": "94:277:4",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "ILotteryTable.JoinInfo",
+            "id": 1898,
+            "members": [
+              {
+                "constant": false,
+                "id": 1891,
+                "mutability": "mutable",
+                "name": "player",
+                "nameLocation": "411:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "403:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1890,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "403:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1893,
+                "mutability": "mutable",
+                "name": "count",
+                "nameLocation": "435:5:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "427:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1892,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "427:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1895,
+                "mutability": "mutable",
+                "name": "number",
+                "nameLocation": "458:6:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "450:14:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 1894,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "450:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 1897,
+                "mutability": "mutable",
+                "name": "referraler",
+                "nameLocation": "482:10:4",
+                "nodeType": "VariableDeclaration",
+                "scope": 1898,
+                "src": "474:18:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 1896,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "474:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "JoinInfo",
+            "nameLocation": "384:8:4",
+            "nodeType": "StructDefinition",
+            "scope": 1905,
+            "src": "377:122:4",
+            "visibility": "public"
+          },
+          {
+            "functionSelector": "796ab25d",
+            "id": 1904,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "joinTable",
+            "nameLocation": "514:9:4",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1902,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1901,
+                  "mutability": "mutable",
+                  "name": "joinInfo",
+                  "nameLocation": "540:8:4",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1904,
+                  "src": "524:24:4",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_JoinInfo_$1898_memory_ptr",
+                    "typeString": "struct ILotteryTable.JoinInfo"
+                  },
+                  "typeName": {
+                    "id": 1900,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 1899,
+                      "name": "JoinInfo",
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1898,
+                      "src": "524:8:4"
+                    },
+                    "referencedDeclaration": 1898,
+                    "src": "524:8:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_JoinInfo_$1898_storage_ptr",
+                      "typeString": "struct ILotteryTable.JoinInfo"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "523:26:4"
+            },
+            "returnParameters": {
+              "id": 1903,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "558:0:4"
+            },
+            "scope": 1905,
+            "src": "505:54:4",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 1906,
+        "src": "63:499:4",
+        "usedErrors": []
+      }
+    ],
+    "src": "38:525:4"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.6+commit.11564f7e.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.1",
+  "updatedAt": "2022-07-13T07:22:21.193Z"
+}

@@ -2,13 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces/ILotteryFactory.sol";
-import "./libraries/TableAddress.sol";
+//import "./libraries/TableAddress.sol";
 
 import "hardhat/console.sol";
 import "./interfaces/ILotteryTable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./LotteryTable.sol";
 
 contract LotteryManager {
     using SafeMath for uint256;
@@ -52,7 +53,6 @@ contract LotteryManager {
         address table = ILotteryFactory(factory).getTable(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
         if (table == address(0)) {
             table = ILotteryFactory(factory).createTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
-
         }
         uint256 hash = uint256(keccak256(abi.encode(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
         hashString = hash.toString();
@@ -94,17 +94,17 @@ contract LotteryManager {
         }
     }
 
-    function joinTableV1(ILotteryTable.TableInfo memory tableInfo)
-    external payable returns (bool result) {
-        console.log("tableInfo is:", tableInfo.creator);
-        TableAddress.TableKey memory tableKey = TableAddress.TableKey({factory: factory, creator: tableInfo.creator, amount: tableInfo.amount,
-            minPPL:tableInfo.minPPL, maxPPL: tableInfo.maxPPL, coolDownTime: tableInfo.coolDownTime,
-            gameTime: tableInfo.gameTime, bankerCommission: tableInfo.bankerCommission, referralCommission: tableInfo.referralCommission,
-            bankerWallet: tableInfo.bankerWallet});
-        address tableAddress = TableAddress.computeAddressV1(factory, tableKey);
-        console.log("tableAddress is", tableAddress);
-        result = true;
-    }
+//    function joinTableV1(ILotteryTable.TableInfo memory tableInfo)
+//    external payable returns (bool result) {
+//        console.log("tableInfo is:", tableInfo.creator);
+//        TableAddress.TableKey memory tableKey = TableAddress.TableKey({factory: factory, creator: tableInfo.creator, amount: tableInfo.amount,
+//            minPPL:tableInfo.minPPL, maxPPL: tableInfo.maxPPL, coolDownTime: tableInfo.coolDownTime,
+//            gameTime: tableInfo.gameTime, bankerCommission: tableInfo.bankerCommission, referralCommission: tableInfo.referralCommission,
+//            bankerWallet: tableInfo.bankerWallet});
+//        address tableAddress = TableAddress.computeAddressV1(factory, tableKey);
+//        console.log("tableAddress is", tableAddress);
+//        result = true;
+//    }
 
     //msg.sender is player
     // count: 下注数量, number:下注数字, tableInfo:创建合约参数

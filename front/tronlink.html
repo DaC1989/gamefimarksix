@@ -40,11 +40,12 @@
         console.log("code, message", code, message);
         if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
             var tronweb = window.tronWeb
-            var tx = await tronweb.transactionBuilder.sendTrx('TD2W4i3Lb5tzqstqDxKgDbHhtzeTgzTPp4', 10, 'TXf5yeQTcn1bzqo6NzJhn4dxVPXwsEUBKW')
+            var tx = await tronweb.transactionBuilder.sendTrx('TD2W4i3Lb5tzqstqDxKgDbHhtzeTgzTPp4', 10*1000000, 'TXf5yeQTcn1bzqo6NzJhn4dxVPXwsEUBKW')
             console.log(111)
             var signedTx = await tronweb.trx.sign(tx)
             var broastTx = await tronweb.trx.sendRawTransaction(signedTx)
             console.log(broastTx)
+
         }
     }
 </script>
