@@ -32,6 +32,10 @@ module.exports = {
       url: "https://polygon-rpc.com/",
       accounts: [PRIVATE_KEY]
     },
+    mumbai: {
+      url: "https://polygon-mumbai.g.alchemy.com/v2/fDqBg0l2Ws7oC9ImoKnI0gbwdpfyqGHD",
+      accounts: ["76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d","cd994739b6121633fc69c0c99351e56c0d2661327e3e7a5fd7805eb9f61a4c83"]
+    },
     bscTestnet: {
       chainId: 97,
       url: "https://bsc-testnet.web3api.com/v1/YA4TB2Y3RCXAYVX49QFQS1M1SXVE3J6XJ9",
