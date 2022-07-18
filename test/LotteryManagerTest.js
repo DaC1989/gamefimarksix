@@ -78,6 +78,7 @@ describe("LotteryManager", function () {
     }).timeout(10000);
 
     it("startRound", async function () {
+        await hre.run('compile');
         const signers = await ethers.getSigners();
         const player = "0xa06e7791114B68CdE383798AB24C06A6615a52dd";
         console.log("player address: ", signers[1].address);
@@ -150,8 +151,10 @@ describe("LotteryManager", function () {
         const startRoundTx = await lotteryManager.startRoundV2(hashString);
         const startRoundTxReceipt = await startRoundTx.wait();
         for (const event of startRoundTxReceipt.events) {
-            console.log(`startRoundTxReceipt ${event.event} with args ${event.args}`);
+            if (event.event == 'StartRound') {
+                console.log(`startRoundTxReceipt ${event.event} with args ${event.args}`);
+            }
         }
 
-    }).timeout(10000);
+    }).timeout(30000);
 });

@@ -19,15 +19,24 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     address public immutable factory;
     address public immutable managerContract;
     TableInfo private tableInfo;
-    RoundInfo roundInfo = new RoundInfo();
-    uint256[] private _playersCount;//玩家下注数
     Counters.Counter private _roundCount;
+
+    struct Round {
+        address[] players;//玩家
+        uint256[] numbers;//号码
+        uint256[] counts;//下注数
+
+        address[] winners;//赢家
+        mapping(address => uint256) winnerCountMap;//赢家下注数
+        uint256[] winnerCount;//赢家多次下注数
+        uint256 winnerAllCount;//压中的总下注数
+    }
+    Round private _round;
 
     modifier onlyFactoryOwner() {
         require(msg.sender == ILotteryFactory(factory).owner());
         _;
     }
-
     modifier onlyManagerContract() {
         require(msg.sender == managerContract);
         _;
@@ -50,44 +59,40 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
 
     //msg.sender is manager contract
     function joinTable(JoinInfo memory joinInfo) onlyManagerContract external override {
-        require(roundInfo.getCount(joinInfo.player) == 0, "Duplicated bet!");
-
         _joinTable(joinInfo);
     }
 
     function _joinTable(JoinInfo memory joinInfo) private {
-        roundInfo.pushPlayers(joinInfo.player);
-        roundInfo.setNumberPlayers(joinInfo.number, joinInfo.player);
-        roundInfo.setCount(joinInfo.player, joinInfo.count);
-        roundInfo.setNumber(joinInfo.player, joinInfo.number);
-        roundInfo.addNumberCount(joinInfo.number, joinInfo.count);
+        _round.players.push(joinInfo.player);
+        _round.numbers.push(joinInfo.number);
+        _round.counts.push(joinInfo.count);
     }
 
     //msg.sender is manager contract
-    function start() external nonReentrant onlyManagerContract returns(uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) {
+    function start() external nonReentrant onlyManagerContract returns(RoundResult memory roundResult) {
         _roundCount.increment();
-        round = _roundCount.current();
 
-        uint256 randomNumber = _getRandom(roundInfo.getPlayers().length);
-        roundResult = randomNumber.mod(10);
-        roundWinnerArray = roundInfo.getNumberPlayers(roundResult);
-        allCount = roundInfo.getNumberCount(roundResult);
-        if (roundWinnerArray.length > 0) {
-            for (uint256 i = 0; i < roundWinnerArray.length; i++) {
-                address winner = roundWinnerArray[i];
-                uint256 count = roundInfo.getCount(winner);
-                _playersCount.push(count);
+        uint256 randomNumber = _getRandom(_round.players.length);
+        uint256 roundNumber = randomNumber.mod(10);
+        for(uint256 i = 0; i < _round.numbers.length; i++) {
+            if (roundNumber == _round.numbers[i]) {
+                _round.winners.push(_round.players[i]);
+                _round.winnerCountMap[_round.players[i]] += _round.counts[i];
+                _round.winnerAllCount += _round.counts[i];
             }
         }
-        playersCount = _playersCount;
-    }
+        for (uint256 i = 0; i < _round.winners.length; i++) {
+            _round.winnerCount.push(_round.winnerCountMap[_round.winners[i]]);
+        }
 
-    //重置游戏数据
-    function reset() external onlyManagerContract returns (bool) {
-        delete roundInfo;
-        delete _playersCount;
-        roundInfo = new RoundInfo();
-        return true;
+        roundResult.round = _roundCount.current();
+        roundResult.roundNumber = roundNumber;
+        roundResult.winnerAllCount = _round.winnerAllCount;
+        roundResult.players = _round.players;
+        roundResult.winners = _round.winners;
+        roundResult.winnerCount = _round.winnerCount;
+
+        delete _round;
     }
 
     function _getRandom(uint256 playersLength) private view returns(uint256 randomNumber) {
@@ -99,7 +104,7 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     }
 
     function getAllPlayers() external view returns(address[] memory allPlayers) {
-        allPlayers = roundInfo.getPlayers();
+        allPlayers = _round.players;
     }
 
     function nextRound() external view returns(uint256 round) {

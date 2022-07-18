@@ -29,7 +29,7 @@ contract LotteryManager {
     event EditTable(string beforeHash, string newHash);
     event JoinTable(address player, uint256 count, uint256 number, string hash);
     //table的hash、第几轮、开奖结果、赢家、所有玩家
-    event StartRound(string hash, uint256 round, uint256 roundResult, address[] roundWinnerArray, address[] allPlayers);
+    event StartRound(string hash, uint256 round, uint256 roundNumber, address[] roundWinnerArray, address[] allPlayers);
 
     constructor(address _factory, address _tokenAddress) {
         factory = _factory;
@@ -172,26 +172,23 @@ contract LotteryManager {
         //机器人下注
         _robotJoinTable(tableInfo, tableAddress);
         //获取开奖结果
-        (uint256 round, uint256 roundResult, address[] memory roundWinnerArray, uint256 allCount, uint256[] memory playersCount) = lotteryTable.start();
-        console.log("roundResult", roundResult);
+        ILotteryTable.RoundResult memory roundResult = lotteryTable.start();
+        console.log("round, roundNumber", roundResult.round, roundResult.roundNumber);
         //根据结果转账
         uint256 poolAmount = tablePool[tableAddress];
         console.log("poolAmount", poolAmount);
-        if (roundWinnerArray.length == 0) {
+        if (roundResult.winners.length == 0) {
             //没有赢家就全部转给banker
             tablePool[tableAddress] = 0;
             token.transfer(tableInfo.bankerWallet, poolAmount);
         } else {
-            for (uint256 i = 0; i < roundWinnerArray.length; i++) {
-                address winner = roundWinnerArray[i];
-                uint256 count = playersCount[i];
-                console.log("count, allCount", count, allCount);
+            for (uint256 i = 0; i < roundResult.winners.length; i++) {
+                address winner = roundResult.winners[i];
+                uint256 count = roundResult.winnerCount[i];
                 //给赢家转账
-                uint256 winAmount = poolAmount.div(allCount).mul(count);
-                console.log("winAmount", winAmount);
+                uint256 winAmount = poolAmount.div(roundResult.winnerAllCount).mul(count);
                 require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
                 tablePool[tableAddress] -= winAmount;
-                console.log("winner", winner);
                 if (uint160(winner) < uint160(1000000000)) {
                     console.log("token.balanceOf(msg.sender)", token.balanceOf(msg.sender));
                     token.transfer(msg.sender, winAmount);
@@ -203,13 +200,10 @@ contract LotteryManager {
                 }
             }
         }
-        //_reset
-        lotteryTable.reset();
         //尝试修改桌子
         _editTable(tableAddress);
         //事件
-        address[] memory allPlayers = lotteryTable.getAllPlayers();
-        emit StartRound(hash, round, roundResult, roundWinnerArray, allPlayers);
+        emit StartRound(hash, roundResult.round, roundResult.roundNumber, roundResult.winners, roundResult.players);
         return true;
     }
 
@@ -238,8 +232,6 @@ contract LotteryManager {
     function _getRandom(uint256 playersLength) private view returns(uint256 randomNumber) {
         randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, playersLength)));
     }
-
-    function _afterRound() internal {}
 
     //referral a:被邀请人；b：邀请人
     function referral(address a, address b) external onlyManagerOwner returns (bool result) {

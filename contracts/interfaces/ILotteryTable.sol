@@ -22,6 +22,16 @@ interface ILotteryTable {
         address referraler;
     }
 
+    struct RoundResult {
+        uint256 round;
+        uint256 roundNumber;
+        address[] players;
+        uint256 winnerAllCount;
+        address[] winners;
+        uint256[] winnerCount;
+    }
+
+
     function joinTable(JoinInfo memory joinInfo) external;
 
 }
