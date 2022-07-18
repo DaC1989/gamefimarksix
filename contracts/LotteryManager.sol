@@ -31,6 +31,9 @@ contract LotteryManager {
     //table的hash、第几轮、开奖结果、赢家、所有玩家
     event StartRound(string hash, uint256 round, uint256 roundNumber, address[] roundWinnerArray, address[] allPlayers);
 
+    event BankerCommission(address player, address banker, uint256 amount);
+    event ReferCommission(address player, address refer, uint256 amount);
+
     constructor(address _factory, address _tokenAddress) {
         factory = _factory;
         token = IERC20(address(_tokenAddress));
@@ -94,18 +97,6 @@ contract LotteryManager {
         }
     }
 
-//    function joinTableV1(ILotteryTable.TableInfo memory tableInfo)
-//    external payable returns (bool result) {
-//        console.log("tableInfo is:", tableInfo.creator);
-//        TableAddress.TableKey memory tableKey = TableAddress.TableKey({factory: factory, creator: tableInfo.creator, amount: tableInfo.amount,
-//            minPPL:tableInfo.minPPL, maxPPL: tableInfo.maxPPL, coolDownTime: tableInfo.coolDownTime,
-//            gameTime: tableInfo.gameTime, bankerCommission: tableInfo.bankerCommission, referralCommission: tableInfo.referralCommission,
-//            bankerWallet: tableInfo.bankerWallet});
-//        address tableAddress = TableAddress.computeAddressV1(factory, tableKey);
-//        console.log("tableAddress is", tableAddress);
-//        result = true;
-//    }
-
     //msg.sender is player
     // count: 下注数量, number:下注数字, tableInfo:创建合约参数
     function joinTableV2(uint256 count, uint256 number, string memory hash)
@@ -121,6 +112,7 @@ contract LotteryManager {
         lotteryTable.joinTable(joinInfo);
 
         ILotteryTable.TableInfo memory tableInfo = lotteryTable.getTableInfo();
+        //
         _afterJoinTable(count, tableInfo, tableAddress);
 
         emit JoinTable(msg.sender, count, number, hash);
@@ -147,6 +139,7 @@ contract LotteryManager {
             tablePool[tableAddress] -= bankerCommissionAmount;
             token.transfer(tableInfo.bankerWallet, bankerCommissionAmount);
             console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
+            emit BankerCommission(msg.sender, tableInfo.bankerWallet, bankerCommissionAmount);
         }
 
         //referralCommission
@@ -157,6 +150,7 @@ contract LotteryManager {
             //减少资金池
             tablePool[tableAddress] -= referralCommission;
             token.transfer(referraler, referralCommission);
+            emit ReferCommission(msg.sender, referraler, referralCommission);
         }
     }
 

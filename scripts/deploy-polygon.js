@@ -14,12 +14,13 @@ async function main() {
     const ERC20 = await hre.ethers.getContractFactory("TestERC20");
     const erc20 = await ERC20.deploy("test-usdt", "test-usdt" );
     await erc20.deployed();
+    console.log("erc20 deployed to:", erc20.address);
     await erc20.connect(signers[0]).transfer(signers[1].address, Web3.utils.toWei('50', 'ether'));
 
     const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactory");
     const lotteryFactory = await LotteryFactory.deploy();
     await lotteryFactory.deployed();
-    console.log("LotteryFactory deployed to:", lotteryFactory.address);
+    console.log("lotteryFactory deployed to:", lotteryFactory.address);
 
     const LotteryManager = await hre.ethers.getContractFactory("LotteryManager");
     const lotteryManager = await LotteryManager.deploy(lotteryFactory.address, erc20.address);
