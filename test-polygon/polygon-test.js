@@ -25,7 +25,7 @@ async function calculateGas(from, to, data) {
     return {gasPrice, estimateGas}
 }
 const abiJson = require("../artifacts/contracts/LotteryManager.sol/LotteryManager.json");
-const contractAddress = "0x20eEa5DBAdDe9515C19d65f87F5Ad37c14b66211";
+const contractAddress = "0x82f0b6dB3A9b91f705096C87eD96053C6E6a3649";
 const accA = "76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d";
 async function createTableIfNecessary() {
     let contract = new web3.eth.Contract(abiJson.abi, contractAddress);
@@ -46,8 +46,9 @@ async function createTableIfNecessary() {
             gas: estimateGas,
             from: "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"
         }).on('receipt', function(receipt){
-            // receipt
-            console.log(receipt);}
+                // receipt
+                console.log("receipt", receipt);
+            }
         );
     console.log("test2 result: ", result);
 }
