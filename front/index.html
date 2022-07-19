@@ -13,15 +13,15 @@
           await window.ethereum.request({ method: 'wallet_addEthereumChain', 
             params: [
                 {
-                    chainId: '0x61',
-                    chainName: 'Binance Smart Chain Testnet',
+                    chainId: '0x13881',
+                    chainName: 'Mumbai',
                     nativeCurrency: {
-                        name: 'tBNB',
-                        symbol: 'tBNB',
+                        name: 'matic',
+                        symbol: 'matic',
                         decimals: 18,
                     },
-                    rpcUrls: ['https://bsc-testnet.web3api.com/v1/FE3K26WKD1VF2FQZ922MU9D53CVMT4FI22/'],
-                    blockExplorerUrls: ['https://testnet.bscscan.com/'],
+                    rpcUrls: ['https://polygon-mumbai.g.alchemy.com/v2/fDqBg0l2Ws7oC9ImoKnI0gbwdpfyqGHD/'],
+                    blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
                 },
             ],
 
@@ -34,7 +34,7 @@
 
           var web3 = new Web3(window.ethereum);
 
-          var contractAddress = '0xDF628E2804e9536B861970F446E0419a2e5B9287';
+          var contractAddress = '0x1146cF92AFEE67E71FEe0e914EF445680ADbe0a1';
           var contract = new web3.eth.Contract(abi, contractAddress);
 
           var result1 = await contract.methods.greet().call();
