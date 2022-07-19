@@ -9,10 +9,10 @@ async function getBalance(address) {
     console.log("getBalance of address", balance);
 }
 
-getBalance('0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827');
 //计算gas
 async function calculateGas(from, to, data) {
     let gasPrice = await web3.eth.getGasPrice()
+    console.log("gasPrice", gasPrice)
     let nonce = await web3.eth.getTransactionCount(from, "latest")
     let estimateGas = await web3.eth.estimateGas({
         nonce: nonce,
@@ -20,7 +20,6 @@ async function calculateGas(from, to, data) {
         to: to,
         data: data
     })
-    console.log("gasPrice", gasPrice)
     console.log("estimateGas", estimateGas)
     return {gasPrice, estimateGas}
 }
@@ -38,7 +37,7 @@ async function createTableIfNecessary() {
 
     let result = await contract
         .methods
-        .createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", Web3.utils.toWei('1', 'ether'), 3, //creator、betting amount、minPPL
+        .createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", Web3.utils.toWei('2', 'ether'), 3, //creator、betting amount、minPPL
             5, 5, 10,//maxPPL、coolDownTime、gameTime
             1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd")//bankerCommission、referralCommission、bankerWallet
         .send({
@@ -47,12 +46,54 @@ async function createTableIfNecessary() {
             from: "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"
         }).on('receipt', function(receipt){
                 // receipt
-                console.log("receipt", receipt);
+                console.log("receipt.events", receipt.events);
+                for (const event of receipt.events) {
+                    if (event.event == 'CreateTableIfNecessary') {
+                        console.log(`CreateTableIfNecessary ${event.event} with args ${event.args}`);
+                    }
+                }
             }
         );
     console.log("test2 result: ", result);
 }
 
-createTableIfNecessary()
+// erc20 deployed to: 0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447
+// lotteryFactory deployed to: 0x00199aD464C43392692C1FEF2CE29169D5ea8059
+// lotteryManager deployed to: 0x82f0b6dB3A9b91f705096C87eD96053C6E6a3649
+
+let erc20ABIJson = require("../artifacts/contracts/TestERC20.sol/TestERC20.json");
+let erc20 = new web3.eth.Contract(erc20ABIJson.abi, "0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447");
+async function startRound() {
+    web3.eth.accounts.wallet.add(accA);
+    let wallet = web3.eth.accounts.privateKeyToAccount(accA);
+    let balance = await erc20.methods.balanceOf(wallet.address).call();
+    console.log("wallet, balance", wallet, balance);
+    let allowance = await erc20.methods.allowance(wallet.address, contractAddress).call();
+    console.log("allowance", allowance);
+    let data = erc20.methods.approve(contractAddress, balance).encodeABI();
+    // let {gasPrice, estimateGas} = await calculateGas("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", contractAddress, data);
+    console.log(1122);
+    await erc20.methods.approve(contractAddress, balance).send({
+        gasPrice: 30791694049,
+        gas: 1388924,
+        from: "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"
+    });
+    console.log(1111);
+    let allowance2 = await erc20.methods.allowance(wallet.address, contractAddress).call();
+    console.log("allowance2", allowance2);
+    let hashString = "49584930728079883437580855597249589608309770452182078693195765254017489182861";
+    let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
+    let result = await lotteryManager.methods.startRoundV2(hashString).send({
+        gasPrice: 30791694049,
+        gas: 1388924,
+        from: "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"
+    });
+    console.log("result", result);
+}
+
+// getBalance('0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827');
+// createTableIfNecessary();
+startRound();
+
 
 
