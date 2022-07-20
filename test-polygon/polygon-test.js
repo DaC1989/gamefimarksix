@@ -70,30 +70,43 @@ async function startRound() {
     console.log("wallet, balance", wallet, balance);
     let allowance = await erc20.methods.allowance(wallet.address, contractAddress).call();
     console.log("allowance", allowance);
-    let data = erc20.methods.approve(contractAddress, balance).encodeABI();
-    // let {gasPrice, estimateGas} = await calculateGas("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", contractAddress, data);
-    console.log(1122);
+    let gasNeeded =await erc20.methods.approve(contractAddress, balance).estimateGas({from:wallet.address});
+    let gasPrice = await web3.eth.getGasPrice()
     await erc20.methods.approve(contractAddress, balance).send({
-        gasPrice: 30791694049,
-        gas: 1388924,
+        gasPrice: gasPrice,
+        gas: gasNeeded,
         from: "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"
     });
-    console.log(1111);
     let allowance2 = await erc20.methods.allowance(wallet.address, contractAddress).call();
     console.log("allowance2", allowance2);
     let hashString = "49584930728079883437580855597249589608309770452182078693195765254017489182861";
     let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
+    let gasPrice2 = await web3.eth.getGasPrice()
+    let gasNeeded2 =await lotteryManager.methods.startRoundV2(hashString).estimateGas({from:wallet.address});
     let result = await lotteryManager.methods.startRoundV2(hashString).send({
-        gasPrice: 30791694049,
-        gas: 1388924,
+        gasPrice: gasPrice2,
+        gas: gasNeeded2,
         from: "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"
     });
     console.log("result", result);
 }
 
+async function testEstimateGas() {
+    web3.eth.accounts.wallet.add(accA);
+    let wallet = web3.eth.accounts.privateKeyToAccount(accA);
+    let balance = await erc20.methods.balanceOf(wallet.address).call();
+    console.log("wallet, balance", wallet, balance);
+    let allowance = await erc20.methods.allowance(wallet.address, contractAddress).call();
+    console.log("allowance", allowance);
+    let data = await erc20.methods.approve(contractAddress, balance).estimateGas({from:wallet.address});
+    console.log("data", data);
+    // let {gasPrice, estimateGas} = await calculateGas("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", contractAddress, data);
+    // console.log("gasPrice, estimateGas", gasPrice, estimateGas);
+}
+
 // getBalance('0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827');
 // createTableIfNecessary();
 startRound();
-
+// testEstimateGas();
 
 
