@@ -9,6 +9,10 @@ async function getBalance(address) {
     console.log("getBalance of address", balance);
 }
 
+// erc20 deployed to: 0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447
+// lotteryFactory deployed to: 0x58CC9626D0de57660A38044e6459c2eD28789326
+// lotteryManager deployed to: 0x941D9441E9D9652FCf3Ad157225eB8aFEBeaB6F7
+
 //计算gas
 async function calculateGas(from, to, data) {
     let gasPrice = await web3.eth.getGasPrice()
@@ -24,7 +28,7 @@ async function calculateGas(from, to, data) {
     return {gasPrice, estimateGas}
 }
 const abiJson = require("../artifacts/contracts/LotteryManager.sol/LotteryManager.json");
-const contractAddress = "0x82f0b6dB3A9b91f705096C87eD96053C6E6a3649";
+const contractAddress = "0x941D9441E9D9652FCf3Ad157225eB8aFEBeaB6F7";
 const accA = "76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d";
 async function createTableIfNecessary() {
     let contract = new web3.eth.Contract(abiJson.abi, contractAddress);
@@ -57,10 +61,6 @@ async function createTableIfNecessary() {
     console.log("test2 result: ", result);
 }
 
-// erc20 deployed to: 0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447
-// lotteryFactory deployed to: 0x00199aD464C43392692C1FEF2CE29169D5ea8059
-// lotteryManager deployed to: 0x82f0b6dB3A9b91f705096C87eD96053C6E6a3649
-
 let erc20ABIJson = require("../artifacts/contracts/TestERC20.sol/TestERC20.json");
 let erc20 = new web3.eth.Contract(erc20ABIJson.abi, "0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447");
 async function startRound() {
@@ -82,7 +82,7 @@ async function startRound() {
     let hashString = "49584930728079883437580855597249589608309770452182078693195765254017489182861";
     let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
     let gasPrice2 = await web3.eth.getGasPrice()
-    let gasNeeded2 =await lotteryManager.methods.startRoundV2(hashString).estimateGas({from:wallet.address});
+    let gasNeeded2 = await lotteryManager.methods.startRoundV2(hashString).estimateGas({from:wallet.address});
     let result = await lotteryManager.methods.startRoundV2(hashString).send({
         gasPrice: gasPrice2,
         gas: gasNeeded2,
@@ -100,13 +100,21 @@ async function testEstimateGas() {
     console.log("allowance", allowance);
     let data = await erc20.methods.approve(contractAddress, balance).estimateGas({from:wallet.address});
     console.log("data", data);
-    // let {gasPrice, estimateGas} = await calculateGas("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", contractAddress, data);
-    // console.log("gasPrice, estimateGas", gasPrice, estimateGas);
+}
+
+async function testHoldingTicket() {
+    web3.eth.accounts.wallet.add(accA);
+    let wallet = web3.eth.accounts.privateKeyToAccount(accA);
+    let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
+    let hashString = "49584930728079883437580855597249589608309770452182078693195765254017489182861";
+    let result = await lotteryManager.methods.holdingTicket(hashString).call({from:wallet.address});
+    console.log("result", result);
 }
 
 // getBalance('0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827');
 // createTableIfNecessary();
-startRound();
+// startRound();
 // testEstimateGas();
+testHoldingTicket();
 
 
