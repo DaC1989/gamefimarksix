@@ -33,6 +33,8 @@ contract LotteryManager {
 
     event BankerCommission(address player, address banker, uint256 amount);
     event ReferCommission(address player, address refer, uint256 amount);
+    //table的hash、第几轮、所有玩家, 玩家下注号码，玩家下注数量
+    event HoldingTicket(string hash, uint256 round, address[] players, uint256[] numbers, uint256[] counts);
 
     constructor(address _factory, address _tokenAddress) {
         factory = _factory;
@@ -77,7 +79,6 @@ contract LotteryManager {
 
     function _editTable(address tableAddress) private returns(bool){
         ILotteryTable.TableInfo memory tableInfo = waitEdit[tableAddress];
-        console.log("ask", tableInfo.minPPL);
         if(tableInfo.creator != address(0)) {
             string memory beforeHash = tableHash[tableAddress];
             LotteryTable lotteryTable = LotteryTable(tableAddress);
@@ -89,7 +90,7 @@ contract LotteryManager {
             tableHash[tableAddress] = hash.toString();
             //删除数据
             delete waitEdit[tableAddress];
-            console.log("beforeHash, hash.toString()", beforeHash, hash.toString());
+            console.log("before, after", beforeHash, hash.toString());
             emit EditTable(beforeHash, hash.toString());
             return true;
         } else {
@@ -101,10 +102,8 @@ contract LotteryManager {
     // count: 下注数量, number:下注数字, tableInfo:创建合约参数
     function joinTableV2(uint256 count, uint256 number, string memory hash)
     external payable returns (bool result) {
-        console.log("joinTableV2 hash is", hash);
         address referraler = referralMap[msg.sender];
         address tableAddress = hashTable[hash];
-        console.log("tableAddress is", tableAddress);
         require(tableAddress != address(0), "no table with the hash, please check the hash!");
 
         LotteryTable lotteryTable = LotteryTable(tableAddress);
@@ -112,7 +111,6 @@ contract LotteryManager {
         lotteryTable.joinTable(joinInfo);
 
         ILotteryTable.TableInfo memory tableInfo = lotteryTable.getTableInfo();
-        //
         _afterJoinTable(count, tableInfo, tableAddress);
 
         emit JoinTable(msg.sender, count, number, hash);
@@ -122,23 +120,17 @@ contract LotteryManager {
     function _afterJoinTable(uint256 count, ILotteryTable.TableInfo memory tableInfo, address tableAddress) private {
         uint256 betAmount = count.mul(tableInfo.amount);
         //player转给manager contract
-        console.log("_afterJoinTable", msg.sender);
-        console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
         token.transferFrom(msg.sender, address(this), betAmount);
-        console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
         //增加资金池
         tablePool[tableAddress] += betAmount;
 
         //bankerCommission
-        console.log("betAmount, tableInfo.bankerCommission", betAmount, tableInfo.bankerCommission);
         if (tableInfo.bankerCommission > 0) {
             uint256 bankerCommissionAmount = betAmount.div(10000).mul(tableInfo.bankerCommission);
-            console.log("bankerCommissionAmount", bankerCommissionAmount);
             require(tablePool[tableAddress] >= bankerCommissionAmount, "Table pool not enough for bankerCommission!");
             //减少资金池
             tablePool[tableAddress] -= bankerCommissionAmount;
             token.transfer(tableInfo.bankerWallet, bankerCommissionAmount);
-            console.log("balance of address(this):" , address(this), token.balanceOf(address(this)));
             emit BankerCommission(msg.sender, tableInfo.bankerWallet, bankerCommissionAmount);
         }
 
@@ -170,7 +162,6 @@ contract LotteryManager {
         console.log("round, roundNumber", roundResult.round, roundResult.roundNumber);
         //根据结果转账
         uint256 poolAmount = tablePool[tableAddress];
-        console.log("poolAmount", poolAmount);
         if (roundResult.winners.length == 0) {
             //没有赢家就全部转给banker
             tablePool[tableAddress] = 0;
@@ -184,13 +175,9 @@ contract LotteryManager {
                 require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
                 tablePool[tableAddress] -= winAmount;
                 if (uint160(winner) < uint160(1000000000)) {
-                    console.log("token.balanceOf(msg.sender)", token.balanceOf(msg.sender));
                     token.transfer(msg.sender, winAmount);
-                    console.log("token.balanceOf(msg.sender)", token.balanceOf(msg.sender));
                 } else {
-                    console.log("token.balanceOf(winner)", token.balanceOf(winner));
                     token.transfer(winner, winAmount);
-                    console.log("token.balanceOf(winner)", token.balanceOf(winner));
                 }
             }
         }
@@ -209,12 +196,8 @@ contract LotteryManager {
             uint256 gap = tableInfo.minPPL.sub(allPlayersLength);
             //机器人下注
             for(uint256 i = 0; i < gap; i++) {
-                console.log("add robot ", i);
                 uint256 number = _getRandom(i).mod(10);
                 address robotAddress = address(uint160(i));
-                console.log("robots address", robotAddress);
-                console.log("robots address uint160", uint160(robotAddress));
-                console.log("robots number", number);
                 //
                 ILotteryTable.JoinInfo memory joinInfo = ILotteryTable.JoinInfo({player:robotAddress, count: 1, number:number, referraler:address(0)});
                 lotteryTable.joinTable(joinInfo);
@@ -237,5 +220,16 @@ contract LotteryManager {
         result = true;
     }
 
+    //table下注情况
+    function holdingTicket(string memory hash) external {
+        address tableAddress = hashTable[hash];
+        require(tableAddress != address(0), "please check the address!");
+
+        LotteryTable lotteryTable = LotteryTable(tableAddress);
+        ILotteryTable.RoundInfo memory roundInfo = lotteryTable.getRoundInfo();
+        uint256 roundCount = lotteryTable.nextRound();
+
+        emit HoldingTicket(hash, roundCount, roundInfo.players, roundInfo.numbers, roundInfo.counts);
+    }
 
 }

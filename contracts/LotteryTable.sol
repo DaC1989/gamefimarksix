@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "./RoundInfo.sol";
 import "hardhat/console.sol";
 
 contract LotteryTable is ILotteryTable, ReentrancyGuard{
@@ -114,6 +113,10 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     function updateTableInfo(TableInfo memory _tableInfo) external onlyManagerContract {
         delete tableInfo;
         tableInfo = _tableInfo;
+    }
+
+    function getRoundInfo() external view onlyManagerContract returns(RoundInfo memory roundInfo) {
+        roundInfo = RoundInfo({players:_round.players, numbers:_round.numbers, counts:_round.counts});
     }
 
 }
