@@ -1,0 +1,46 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ILotteryTable",
+  "sourceName": "contracts/interfaces/ILotteryTable.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "player",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "count",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "number",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "referraler",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct ILotteryTable.JoinInfo",
+          "name": "joinInfo",
+          "type": "tuple"
+        }
+      ],
+      "name": "joinTable",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
