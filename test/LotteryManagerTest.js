@@ -152,9 +152,13 @@ describe("LotteryManager", function () {
         const startRoundTxReceipt = await startRoundTx.wait();
         for (const event of startRoundTxReceipt.events) {
             if (event.event == 'StartRound') {
-                console.log(`startRoundTxReceipt ${event.event} with args ${event.args}`);
+                console.log("StartRound",event)
+                // console.log(`startRoundTxReceipt ${event.event} with args ${event.args}`);
             }
         }
+        //holdingTicket
+        const holdingTicketTx = await lotteryManager.holdingTicket(hashString);
+        console.log("holdingTicketTx", holdingTicketTx);
 
     }).timeout(30000);
 });

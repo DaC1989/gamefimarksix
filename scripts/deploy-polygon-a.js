@@ -6,24 +6,24 @@
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
 const Web3 = require("web3");
-
+//联调
 async function main() {
     await hre.run('compile');
     const signers = await ethers.getSigners();
     //提供ERC20测试代币
     // const ERC20 = await hre.ethers.getContractFactory("TestERC20");
-    // const erc20 = await ERC20.deploy("test-usdt", "test-usdt" );
+    // const erc20 = await ERC20.deploy("test-usdt02", "test-usdt02" );
     // await erc20.deployed();
     // console.log("erc20 deployed to:", erc20.address);
     // await erc20.connect(signers[0]).transfer(signers[1].address, Web3.utils.toWei('50', 'ether'));
-
+    //
     const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactory");
-    const lotteryFactory = await LotteryFactory.deploy();
+    const lotteryFactory = await LotteryFactory.connect(signers[1]).deploy();
     await lotteryFactory.deployed();
     console.log("lotteryFactory deployed to:", lotteryFactory.address);
 
     const LotteryManager = await hre.ethers.getContractFactory("LotteryManager");
-    const lotteryManager = await LotteryManager.deploy(lotteryFactory.address, "0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447");
+    const lotteryManager = await LotteryManager.connect(signers[1]).deploy(lotteryFactory.address, "0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447");
     await lotteryManager.deployed();
     console.log("lotteryManager deployed to:", lotteryManager.address);
 }

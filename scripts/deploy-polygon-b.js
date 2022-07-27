@@ -4,20 +4,27 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
+const {ethers} = require("hardhat");
+const Web3 = require("web3");
 
+//自测
 async function main() {
     await hre.run('compile');
-    // We get the contract to deploy
+    const signers = await ethers.getSigners();
+    //提供ERC20测试代币
+    const ERC20 = await hre.ethers.getContractFactory("TestERC20");
+    const erc20 = await ERC20.deploy("test-usdt02", "test-usdt02" );
+    await erc20.deployed();
+    console.log("erc20 deployed to:", erc20.address);
+    await erc20.connect(signers[0]).transfer(signers[2].address, Web3.utils.toWei('10000', 'ether'));
+
     const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactory");
     const lotteryFactory = await LotteryFactory.deploy();
     await lotteryFactory.deployed();
-    console.log("LotteryFactory deployed to:", lotteryFactory.address);
+    console.log("lotteryFactory deployed to:", lotteryFactory.address);
 
-    //hardhat usdt:0x73F7fF55196c525A8273c766BeeA3F61D1b829b2
-    //BSC testnet USDT:0x337610d27c682E347C9cD60BD4b3b107C9d34dDd
-    //BSC mainnet USDT:0x55d398326f99059ff775485246999027b3197955
     const LotteryManager = await hre.ethers.getContractFactory("LotteryManager");
-    const lotteryManager = await LotteryManager.deploy(lotteryFactory.address, "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd");
+    const lotteryManager = await LotteryManager.deploy(lotteryFactory.address, erc20.address);
     await lotteryManager.deployed();
     console.log("lotteryManager deployed to:", lotteryManager.address);
 }

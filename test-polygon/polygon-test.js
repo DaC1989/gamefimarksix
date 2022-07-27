@@ -1,17 +1,12 @@
 const Web3 = require("web3");
 
-const url = "https://polygon-mumbai.g.alchemy.com/v2/fDqBg0l2Ws7oC9ImoKnI0gbwdpfyqGHD";
+const url = "https://polygon-mumbai.g.alchemy.com/v2/mmgALrtka8e2gZjKP0x2Pp-BsuiCtQXi";
 // Using web3js
 const web3 = new Web3(url);
 
-async function getBalance(address) {
-    let balance = await web3.eth.getBalance(address);
-    console.log("getBalance of address", balance);
-}
-
 // erc20 deployed to: 0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447
-// lotteryFactory deployed to: 0x58CC9626D0de57660A38044e6459c2eD28789326
-// lotteryManager deployed to: 0x941D9441E9D9652FCf3Ad157225eB8aFEBeaB6F7
+// lotteryFactory deployed to: 0xF0FC71193F78783f907e392c6543D1E4852154E6
+// lotteryManager deployed to: 0x4fA53F28aFB036b1f0676e6fA21A09B84906D941
 
 //计算gas
 async function calculateGas(from, to, data) {
@@ -27,9 +22,12 @@ async function calculateGas(from, to, data) {
     console.log("estimateGas", estimateGas)
     return {gasPrice, estimateGas}
 }
+
 const abiJson = require("../artifacts/contracts/LotteryManager.sol/LotteryManager.json");
-const contractAddress = "0x941D9441E9D9652FCf3Ad157225eB8aFEBeaB6F7";
+const contractAddress = "0x81F39241D2Cbb9a8985Af862a7157c33B41Ab933";
 const accA = "76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d";
+const erc20Address = "0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447";
+
 async function createTableIfNecessary() {
     let contract = new web3.eth.Contract(abiJson.abi, contractAddress);
     web3.eth.accounts.wallet.add(accA);
@@ -111,10 +109,31 @@ async function testHoldingTicket() {
     console.log("result", result);
 }
 
-// getBalance('0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827');
+async function transferUSDT(address) {
+    web3.eth.accounts.wallet.add(accA);
+    let wallet = web3.eth.accounts.privateKeyToAccount(accA);
+
+    let gasPrice2 = await web3.eth.getGasPrice();
+    let gasNeeded2 = await erc20.methods.transfer(address, Web3.utils.toWei('10000', 'ether')).estimateGas({from: wallet.address});
+    let result = await erc20.methods.transfer(address, Web3.utils.toWei('10000', 'ether')).send({
+        gasPrice: gasPrice2,
+        gas: gasNeeded2,
+        from: wallet.address
+    });
+
+    console.log("result", result);
+}
+
+async function getBalance(address) {
+    let balance = await erc20.methods.balanceOf(address).call();
+    console.log("getBalance of address", Web3.utils.fromWei(balance));
+}
+
+// getBalance('0x29Bf30f822E93582b8ABcA1788eB142021f44EDb');
 // createTableIfNecessary();
 // startRound();
 // testEstimateGas();
-testHoldingTicket();
+// testHoldingTicket();
+transferUSDT("0x366fB72a638657AD21512c46cFe474AE1E88155a");
 
 

@@ -19,18 +19,18 @@ contract LotteryManager {
     IERC20 private token;
     address public owner;
     mapping(address => address) private referralMap;
-    mapping(string => address) private hashTable;
-    mapping(address => string) private tableHash;
+    mapping(string => address) private hashTableMap;
+    mapping(address => string) private tableHashMap;
     mapping(address => uint256) private tablePool;
-
+    mapping(address => uint256[]) private rewardsMap;
     mapping(address => ILotteryTable.TableInfo) private waitEdit;
+    mapping(string => bool) roundLock;
 
     event CreateTableIfNecessary(string hash);
     event EditTable(string beforeHash, string newHash);
     event JoinTable(address player, uint256 count, uint256 number, string hash);
-    //table的hash、第几轮、开奖结果、赢家、所有玩家
-    event StartRound(string hash, uint256 round, uint256 roundNumber, address[] roundWinnerArray, address[] allPlayers);
-
+    //table的hash、第几轮、奖金池大小、开奖结果、赢家、赢家获得的金额、所有玩家、玩家下注号码、玩家下注数量
+    event StartRound(string hash, uint256 round, uint256 poolAmount, uint256 roundNumber, address[] roundWinnerArray, uint256[] rewards, address[] allPlayers, uint256[] numbers, uint256[] counts);
     event BankerCommission(address player, address banker, uint256 amount);
     event ReferCommission(address player, address refer, uint256 amount);
     //table的hash、第几轮、所有玩家, 玩家下注号码，玩家下注数量
@@ -43,8 +43,16 @@ contract LotteryManager {
     }
 
     modifier onlyManagerOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "msg.sender is not the owner");
         _;
+    }
+
+    modifier roundNoReentrant(string memory hash) {
+        bool locked = roundLock[hash];
+        require(!locked, "No re-entrancy round");
+        locked = true;
+        _;
+        locked = false;
     }
 
     //创建table
@@ -61,33 +69,32 @@ contract LotteryManager {
         }
         uint256 hash = uint256(keccak256(abi.encode(creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
         hashString = hash.toString();
-        hashTable[hashString] = table;
-        tableHash[table] = hashString;
+        hashTableMap[hashString] = table;
+        tableHashMap[table] = hashString;
         console.log("table is:", table);
-        console.log("hashString is:", hashString);
+        console.log("table hashString is", hashString);
 
         emit CreateTableIfNecessary(hashString);
     }
 
     //msg.sender is mananger
     function editTable(string memory hashString, ILotteryTable.TableInfo memory tableInfo) external onlyManagerOwner {
-        address tableAddress = hashTable[hashString];
+        address tableAddress = hashTableMap[hashString];
         require(tableAddress != address(0), "No table with the hash, please check the hash!");
 
         waitEdit[tableAddress] = tableInfo;
     }
 
-    function _editTable(address tableAddress) private returns(bool){
+    function _tryEditTable(address tableAddress) private returns(bool){
         ILotteryTable.TableInfo memory tableInfo = waitEdit[tableAddress];
         if(tableInfo.creator != address(0)) {
-            string memory beforeHash = tableHash[tableAddress];
+            string memory beforeHash = tableHashMap[tableAddress];
             LotteryTable lotteryTable = LotteryTable(tableAddress);
             lotteryTable.updateTableInfo(tableInfo);
-            console.log("now", lotteryTable.getTableInfo().minPPL);
             //更新hash
             uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
-            hashTable[hash.toString()] = tableAddress;
-            tableHash[tableAddress] = hash.toString();
+            hashTableMap[hash.toString()] = tableAddress;
+            tableHashMap[tableAddress] = hash.toString();
             //删除数据
             delete waitEdit[tableAddress];
             console.log("before, after", beforeHash, hash.toString());
@@ -103,7 +110,7 @@ contract LotteryManager {
     function joinTableV2(uint256 count, uint256 number, string memory hash)
     external payable returns (bool result) {
         address referraler = referralMap[msg.sender];
-        address tableAddress = hashTable[hash];
+        address tableAddress = hashTableMap[hash];
         require(tableAddress != address(0), "no table with the hash, please check the hash!");
 
         LotteryTable lotteryTable = LotteryTable(tableAddress);
@@ -149,8 +156,8 @@ contract LotteryManager {
     //msg.sender is manager owner
     //启动一局
     //hash:合约hash
-    function startRoundV2(string memory hash) external onlyManagerOwner payable returns (bool) {
-        address tableAddress = hashTable[hash];
+    function startRoundV2(string memory hash) external onlyManagerOwner roundNoReentrant(hash) payable returns (bool) {
+        address tableAddress = hashTableMap[hash];
         require(tableAddress != address(0), "please check the address!");
 
         LotteryTable lotteryTable = LotteryTable(tableAddress);
@@ -179,12 +186,14 @@ contract LotteryManager {
                 } else {
                     token.transfer(winner, winAmount);
                 }
+                rewardsMap[tableAddress].push(winAmount);
             }
         }
         //尝试修改桌子
-        _editTable(tableAddress);
+        _tryEditTable(tableAddress);
         //事件
-        emit StartRound(hash, roundResult.round, roundResult.roundNumber, roundResult.winners, roundResult.players);
+        emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber, roundResult.winners, rewardsMap[tableAddress], roundResult.players, roundResult.numbers, roundResult.counts);
+        delete rewardsMap[tableAddress];
         return true;
     }
 
@@ -221,15 +230,49 @@ contract LotteryManager {
     }
 
     //table下注情况
-    function holdingTicket(string memory hash) external {
-        address tableAddress = hashTable[hash];
+    function holdingTicket(string memory hash)
+    external
+    view
+    returns(
+        string memory tableHash,
+        uint256 round,
+        address[] memory players,
+        uint256[] memory numbers,
+        uint256[] memory counts
+    ) {
+        address tableAddress = hashTableMap[hash];
         require(tableAddress != address(0), "please check the address!");
 
         LotteryTable lotteryTable = LotteryTable(tableAddress);
         ILotteryTable.RoundInfo memory roundInfo = lotteryTable.getRoundInfo();
         uint256 roundCount = lotteryTable.nextRound();
 
-        emit HoldingTicket(hash, roundCount, roundInfo.players, roundInfo.numbers, roundInfo.counts);
+        tableHash = hash;
+        round = roundCount;
+        players = roundInfo.players;
+        numbers = roundInfo.numbers;
+        counts = roundInfo.counts;
+    }
+
+    //修改table的manage contract
+    function changeTableManager(string memory hash, address newManagerContract)
+    external
+    onlyManagerOwner
+    returns(bool result) {
+        address tableAddress = hashTableMap[hash];
+        require(tableAddress != address(0), "please check the address!");
+
+        LotteryTable lotteryTable = LotteryTable(tableAddress);
+        result = lotteryTable.changeManager(newManagerContract);
+    }
+
+    //
+    function changeOwner(address newOwner)
+    external
+    onlyManagerOwner
+    returns(bool result){
+        owner = newOwner;
+        result = true;
     }
 
 }

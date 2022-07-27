@@ -32,6 +32,8 @@ interface ILotteryTable {
         uint256 round;
         uint256 roundNumber;
         address[] players;
+        uint256[] numbers;//玩家号码
+        uint256[] counts;//玩家下注数
         uint256 winnerAllCount;
         address[] winners;
         uint256[] winnerCount;

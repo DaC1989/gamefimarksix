@@ -16,13 +16,13 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
     using Counters for Counters.Counter;
 
     address public immutable factory;
-    address public immutable managerContract;
+    address public _managerContract;
     TableInfo private tableInfo;
     Counters.Counter private _roundCount;
 
     struct Round {
         address[] players;//玩家
-        uint256[] numbers;//号码
+        uint256[] numbers;//下注号码
         uint256[] counts;//下注数
 
         address[] winners;//赢家
@@ -37,13 +37,13 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
         _;
     }
     modifier onlyManagerContract() {
-        require(msg.sender == managerContract);
+        require(msg.sender == _managerContract, "not contract manager");
         _;
     }
 
     constructor() {
         ILotteryTableDeployer.Parameters memory params = ILotteryTableDeployer(msg.sender).getParameters();
-        managerContract = params.managerContract;
+        _managerContract = params.managerContract;
         factory = params.factory;
         tableInfo =  TableInfo({creator: params.creator,
                                 amount:params.amount,
@@ -88,6 +88,8 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
         roundResult.roundNumber = roundNumber;
         roundResult.winnerAllCount = _round.winnerAllCount;
         roundResult.players = _round.players;
+        roundResult.numbers = _round.numbers;
+        roundResult.counts = _round.counts;
         roundResult.winners = _round.winners;
         roundResult.winnerCount = _round.winnerCount;
 
@@ -117,6 +119,11 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
 
     function getRoundInfo() external view onlyManagerContract returns(RoundInfo memory roundInfo) {
         roundInfo = RoundInfo({players:_round.players, numbers:_round.numbers, counts:_round.counts});
+    }
+
+    function changeManager(address managerContract) external onlyManagerContract returns(bool result) {
+        _managerContract = managerContract;
+        result = true;
     }
 
 }
