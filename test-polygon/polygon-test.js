@@ -5,8 +5,9 @@ const url = "https://polygon-mumbai.g.alchemy.com/v2/mmgALrtka8e2gZjKP0x2Pp-Bsui
 const web3 = new Web3(url);
 
 // erc20 deployed to: 0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447
-// lotteryFactory deployed to: 0xF0FC71193F78783f907e392c6543D1E4852154E6
-// lotteryManager deployed to: 0x4fA53F28aFB036b1f0676e6fA21A09B84906D941
+// lotteryFactory deployed to: 0x4EC23E95b6190564f14b685f235fd93f37E1F862
+// lotteryManager deployed to: 0x149bd24c00A24b3E2FdB46D17740f0aA1E99d2cD
+
 
 //计算gas
 async function calculateGas(from, to, data) {
