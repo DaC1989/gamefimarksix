@@ -1,0 +1,913 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<meta charset="UTF-8">
+
+<head>
+  <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.7.1/dist/web3.min.js"></script>
+  <script type="text/javascript">
+
+  async function test() {
+      if (window.ethereum) {
+        try {
+          //add network
+          await window.ethereum.request({ method: 'wallet_addEthereumChain', 
+            params: [
+                {
+                    chainId: '0x13881',
+                    chainName: 'Mumbai',
+                    nativeCurrency: {
+                        name: 'matic',
+                        symbol: 'matic',
+                        decimals: 18,
+                    },
+                    rpcUrls: ['https://polygon-mumbai.g.alchemy.com/v2/SvA_lO5Df9j0YS0YPSUIcmNbe8CYXCZX/'],
+                    blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
+                },
+            ],
+
+          });
+
+          var accounts = await window.ethereum.request({ method: 'eth_requestAccounts'});
+          var web3 = new Web3(window.ethereum);
+
+
+          //new contract object
+          var managerAbi =  [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_factory",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_tokenAddress",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "player",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "banker",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                }
+              ],
+              "name": "BankerCommission",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                }
+              ],
+              "name": "CreateTableIfNecessary",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "beforeHash",
+                  "type": "string"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "newHash",
+                  "type": "string"
+                }
+              ],
+              "name": "EditTable",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "round",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address[]",
+                  "name": "players",
+                  "type": "address[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256[]",
+                  "name": "numbers",
+                  "type": "uint256[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256[]",
+                  "name": "counts",
+                  "type": "uint256[]"
+                }
+              ],
+              "name": "HoldingTicket",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "player",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "count",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "number",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                }
+              ],
+              "name": "JoinTable",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "player",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "refer",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                }
+              ],
+              "name": "ReferCommission",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "round",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "poolAmount",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "roundNumber",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address[]",
+                  "name": "roundWinnerArray",
+                  "type": "address[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256[]",
+                  "name": "rewards",
+                  "type": "uint256[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address[]",
+                  "name": "allPlayers",
+                  "type": "address[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256[]",
+                  "name": "numbers",
+                  "type": "uint256[]"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256[]",
+                  "name": "counts",
+                  "type": "uint256[]"
+                }
+              ],
+              "name": "StartRound",
+              "type": "event"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "changeOwner",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "result",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                },
+                {
+                  "internalType": "address",
+                  "name": "newManagerContract",
+                  "type": "address"
+                }
+              ],
+              "name": "changeTableManager",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "result",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "creator",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "minPPL",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "maxPPL",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "coolDownTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "gameTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "bankerCommission",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "referralCommission",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "bankerWallet",
+                  "type": "address"
+                }
+              ],
+              "name": "createTableIfNecessary",
+              "outputs": [
+                {
+                  "internalType": "string",
+                  "name": "hashString",
+                  "type": "string"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "string",
+                  "name": "hashString",
+                  "type": "string"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "creator",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "minPPL",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "maxPPL",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "coolDownTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "gameTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "bankerCommission",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "referralCommission",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "bankerWallet",
+                      "type": "address"
+                    }
+                  ],
+                  "internalType": "struct ILotteryTable.TableInfo",
+                  "name": "tableInfo",
+                  "type": "tuple"
+                }
+              ],
+              "name": "editTable",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "factory",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                }
+              ],
+              "name": "holdingTicket",
+              "outputs": [
+                {
+                  "internalType": "string",
+                  "name": "tableHash",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "round",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "players",
+                  "type": "address[]"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "numbers",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "counts",
+                  "type": "uint256[]"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "count",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "number",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                }
+              ],
+              "name": "joinTableV2",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "result",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "a",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "b",
+                  "type": "address"
+                }
+              ],
+              "name": "referral",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "result",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "string",
+                  "name": "hash",
+                  "type": "string"
+                }
+              ],
+              "name": "startRoundV2",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            }
+          ];
+          var erc20Abi =  [
+            {
+              "inputs": [
+                {
+                  "internalType": "string",
+                  "name": "name_",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "symbol_",
+                  "type": "string"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "owner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "spender",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "value",
+                  "type": "uint256"
+                }
+              ],
+              "name": "Approval",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "from",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "value",
+                  "type": "uint256"
+                }
+              ],
+              "name": "Transfer",
+              "type": "event"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "owner",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "spender",
+                  "type": "address"
+                }
+              ],
+              "name": "allowance",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "spender",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                }
+              ],
+              "name": "approve",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "account",
+                  "type": "address"
+                }
+              ],
+              "name": "balanceOf",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "decimals",
+              "outputs": [
+                {
+                  "internalType": "uint8",
+                  "name": "",
+                  "type": "uint8"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "spender",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "subtractedValue",
+                  "type": "uint256"
+                }
+              ],
+              "name": "decreaseAllowance",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "spender",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "addedValue",
+                  "type": "uint256"
+                }
+              ],
+              "name": "increaseAllowance",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "name",
+              "outputs": [
+                {
+                  "internalType": "string",
+                  "name": "",
+                  "type": "string"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "symbol",
+              "outputs": [
+                {
+                  "internalType": "string",
+                  "name": "",
+                  "type": "string"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "totalSupply",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                }
+              ],
+              "name": "transfer",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "from",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                }
+              ],
+              "name": "transferFrom",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ];
+
+          var managerContractAddress = '0x149bd24c00A24b3E2FdB46D17740f0aA1E99d2cD';
+          var erc20Address = "0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447";
+
+          var managerContract = new web3.eth.Contract(managerAbi, managerContractAddress);
+          var erc20Contract = new web3.eth.Contract(erc20Abi, erc20Address);
+
+          //测试下注,提前创建一张4u桌子，hash为 103849476647844347348057178463885426286861641356672598979366477044129000181847
+          console.log("accounts[0]", accounts[0]);
+          let tableHash = "103849476647844347348057178463885426286861641356672598979366477044129000181847";
+          //假设下一注, 号码选择2
+          let count = 1, number = 2;
+          //approve
+          let amount = Web3.utils.toWei('4', 'ether');
+          let allowance = await erc20Contract.methods.allowance(accounts[0], managerContractAddress).call();
+          console.log("allowance", allowance);
+          let gasNeeded =await erc20Contract.methods.approve(managerContractAddress, amount).estimateGas({from: accounts[0]});
+          let gasPrice = await web3.eth.getGasPrice();
+          console.log("gasPrice", gasPrice);
+          console.log("gasNeeded", gasNeeded);
+          let result1 = await erc20Contract.methods.approve(managerContractAddress, amount).send({
+            gasPrice: gasPrice,
+            gas: gasNeeded * 2,
+            from: accounts[0]
+          });
+          console.log("approve result", result1);
+
+          //joinTable
+          console.log("joinTable");
+          let gasPrice2 = await web3.eth.getGasPrice();
+          let gasNeeded2 = await managerContract.methods.joinTableV2(count, number, tableHash).estimateGas({from: accounts[0]});
+          console.log("gasPrice", gasPrice2);
+          console.log("gasNeeded", gasNeeded2);
+          let result2 = await managerContract.methods.joinTableV2(count, number, tableHash).send({
+            gasPrice: gasPrice2,
+            gas: gasNeeded2 * 2,
+            from: accounts[0]
+          });
+          console.log("joinTable result", result2);
+          //查看holding ticket
+          console.log("holdingTicket");
+          let result3 = await managerContract.methods.holdingTicket(tableHash).call({from: accounts[0]});
+          console.log("holdingTicket result", result3);
+        } catch (error) {
+          console.log(error);
+        }
+      } 
+    }
+  </script>
+</head>
+
+<body>
+
+
+<button onclick="test()">Test</button>
+</body>
+
+</html>
