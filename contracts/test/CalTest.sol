@@ -13,4 +13,8 @@ contract CalTest {
         (flag, result) = a.trySub(b);
     }
 
+    function divTest(uint256 a, uint256 b) public pure returns (uint256 result) {
+        result = a.div(b);
+    }
+
 }

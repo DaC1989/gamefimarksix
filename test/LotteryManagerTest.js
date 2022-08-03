@@ -113,7 +113,7 @@ describe("LotteryManager", function () {
         console.log("LotteryManager deployed to:", lotteryManager.address);
 
         const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
-            Web3.utils.toWei('1', 'ether'), 10, 10, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
+            Web3.utils.toWei('2', 'ether'), 20, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd");
         const receipt = await createTableIfNecessary.wait()
         let hashString = "";
         for (const event of receipt.events) {
@@ -124,8 +124,8 @@ describe("LotteryManager", function () {
         }
 
         const tableInfo = {"creator": "0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
-            "amount": Web3.utils.toWei('1', 'ether'),
-            "minPPL":1,
+            "amount": Web3.utils.toWei('2', 'ether'),
+            "minPPL":3,
             "maxPPL":5,
             "coolDownTime": 5,
             "gameTime": 10,
@@ -135,17 +135,25 @@ describe("LotteryManager", function () {
 
         //player approve
         await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('1.111111111111111111', 'ether'));
-        const joinTableV2Tx = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString);
-        const joinTableV2TxReceipt = await joinTableV2Tx.wait();
-        for (const event of joinTableV2TxReceipt.events) {
-            console.log(`joinTableV2TxReceipt ${event.event} with args ${event.args}`);
-        }
+
+        //joinTable
+        // const joinTableV2Tx = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString);
+        // const joinTableV2TxReceipt = await joinTableV2Tx.wait();
+        // for (const event of joinTableV2TxReceipt.events) {
+        //     console.log(`joinTableV2TxReceipt ${event.event} with args ${event.args}`);
+        // }
+
         //edit table
         const editTableTx = await lotteryManager.editTable(hashString, tableInfo);
         const editTableTxReceipt = await editTableTx.wait();
         for (const event of editTableTxReceipt.events) {
             console.log(`editTableTxReceipt ${event.event} with args ${event.args}`);
         }
+
+        //holdingTicket
+        const holdingTicketTx = await lotteryManager.holdingTicket(hashString);
+        console.log("holdingTicketTx", holdingTicketTx);
+
         //start round
         await erc20.approve(lotteryManager.address, erc20.balanceOf(signers[0].address));
         const startRoundTx = await lotteryManager.startRoundV2(hashString);
@@ -153,12 +161,8 @@ describe("LotteryManager", function () {
         for (const event of startRoundTxReceipt.events) {
             if (event.event == 'StartRound') {
                 console.log("StartRound",event)
-                // console.log(`startRoundTxReceipt ${event.event} with args ${event.args}`);
             }
         }
-        //holdingTicket
-        const holdingTicketTx = await lotteryManager.holdingTicket(hashString);
-        console.log("holdingTicketTx", holdingTicketTx);
 
     }).timeout(30000);
 });

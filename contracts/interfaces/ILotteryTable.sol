@@ -34,9 +34,9 @@ interface ILotteryTable {
         address[] players;
         uint256[] numbers;//玩家号码
         uint256[] counts;//玩家下注数
-        uint256 winnerAllCount;
-        address[] winners;
-        uint256[] winnerCount;
+        uint256 winnerAllCount;//本局总的中奖下注数量
+        address[] winners;//赢家
+        uint256[] winnerCount;//赢家下注数量
     }
 
     function joinTable(JoinInfo memory joinInfo) external;

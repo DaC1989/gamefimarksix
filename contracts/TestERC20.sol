@@ -114,7 +114,6 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
         uint256 amount
     ) public virtual override returns (bool) {
         address spender = _msgSender();
-        console.log("transferFrom", from, spender, amount);
         _spendAllowance(from, spender, amount);
         _transfer(from, to, amount);
         return true;
@@ -144,7 +143,6 @@ contract TestERC20 is Context, IERC20, IERC20Metadata {
     ) internal virtual {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
-        console.log("_transfer", from, to, amount);
 
         _beforeTokenTransfer(from, to, amount);
 

@@ -22,7 +22,10 @@ contract LotteryManager {
     mapping(string => address) private hashTableMap;
     mapping(address => string) private tableHashMap;
     mapping(address => uint256) private tablePool;
-    mapping(address => uint256[]) private rewardsMap;
+    mapping(address => int256[]) private rewardsMap;
+
+    int256[] rewardsArray;//玩家
+
     mapping(address => ILotteryTable.TableInfo) private waitEdit;
     mapping(string => bool) roundLock;
 
@@ -30,7 +33,7 @@ contract LotteryManager {
     event EditTable(string beforeHash, string newHash);
     event JoinTable(address player, uint256 count, uint256 number, string hash);
     //table的hash、第几轮、奖金池大小、开奖结果、赢家、赢家获得的金额、所有玩家、玩家下注号码、玩家下注数量
-    event StartRound(string hash, uint256 round, uint256 poolAmount, uint256 roundNumber, address[] roundWinnerArray, uint256[] rewards, address[] allPlayers, uint256[] numbers, uint256[] counts);
+    event StartRound(string hash, uint256 round, uint256 poolAmount, uint256 roundNumber, address[] roundWinnerArray, uint256[] winnerCount, int256[] rewards, address[] allPlayers, uint256[] numbers, uint256[] counts);
     event BankerCommission(address player, address banker, uint256 amount);
     event ReferCommission(address player, address refer, uint256 amount);
     //table的hash、第几轮、所有玩家, 玩家下注号码，玩家下注数量
@@ -166,9 +169,24 @@ contract LotteryManager {
         _robotJoinTable(tableInfo, tableAddress);
         //获取开奖结果
         ILotteryTable.RoundResult memory roundResult = lotteryTable.start();
-        console.log("round, roundNumber", roundResult.round, roundResult.roundNumber);
-        //根据结果转账
+        console.log("round, roundNumber, roundResult.winnerAllCount", roundResult.round, roundResult.roundNumber, roundResult.winnerAllCount);
         uint256 poolAmount = tablePool[tableAddress];
+        console.log("poolAmount, roundResult.winners.length", poolAmount, roundResult.winners.length);
+        //计算一份奖金是多少
+        (bool flag, uint256 onePieceReward)= poolAmount.tryDiv(roundResult.winnerAllCount);
+        console.log("onePieceReward", onePieceReward);
+        //按allPlayers计算玩家输赢多少
+        for(uint256 i = 0; i < roundResult.players.length; i++) {
+            int256 reward;
+            if (roundResult.numbers[i] == roundResult.roundNumber) {
+                reward = int256(onePieceReward.mul(roundResult.counts[i]));
+            } else {
+                reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
+            }
+            rewardsMap[tableAddress].push(reward);
+        }
+
+        //根据结果转账
         if (roundResult.winners.length == 0) {
             //没有赢家就全部转给banker
             tablePool[tableAddress] = 0;
@@ -178,21 +196,26 @@ contract LotteryManager {
                 address winner = roundResult.winners[i];
                 uint256 count = roundResult.winnerCount[i];
                 //给赢家转账
-                uint256 winAmount = poolAmount.div(roundResult.winnerAllCount).mul(count);
-                require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
+                uint256 winAmount = onePieceReward.mul(count);
+                console.log("tablePool[tableAddress], winAmount", tablePool[tableAddress], winAmount);
+                //require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
+                //TODO 为啥polygon会报错？先这么设置
+                if (tablePool[tableAddress] < winAmount) {
+                    winAmount = tablePool[tableAddress];
+                }
                 tablePool[tableAddress] -= winAmount;
                 if (uint160(winner) < uint160(1000000000)) {
+                    console.log("winner is robot, winAmount", winAmount);
                     token.transfer(msg.sender, winAmount);
                 } else {
                     token.transfer(winner, winAmount);
                 }
-                rewardsMap[tableAddress].push(winAmount);
             }
         }
         //尝试修改桌子
         _tryEditTable(tableAddress);
         //事件
-        emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber, roundResult.winners, rewardsMap[tableAddress], roundResult.players, roundResult.numbers, roundResult.counts);
+        emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber, roundResult.winners, roundResult.winnerCount, rewardsMap[tableAddress], roundResult.players, roundResult.numbers, roundResult.counts);
         delete rewardsMap[tableAddress];
         return true;
     }
