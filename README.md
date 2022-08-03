@@ -86,15 +86,16 @@
       returns (bool);
    
       event StartRound(
-              string hash, //table的hash
-              uint256 round, //第几局游戏
+              string hash,//table的hash
+              uint256 round,//第几轮
               uint256 poolAmount,//奖金池大小
-              uint256 roundNumber, //开奖号码
-              address[] roundWinnerArray, //赢家
-              uint256[] rewards, //赢家获得的金额
-              address[] allPlayers, //所有玩家
-              uint256[] numbers, //玩家下注号码
-              uint256[] counts //玩家下注数量
+              uint256 roundNumber,//开奖结果
+              address[] roundWinnerArray,//赢家
+              uint256[] winnerCount,//赢家获得的金额
+              int256[] rewards,//玩家本局输赢金额
+              address[] allPlayers,//所有玩家
+              uint256[] numbers,//玩家下注号码
+              uint256[] counts//玩家下注数量
       );
    
       event EditTable(
