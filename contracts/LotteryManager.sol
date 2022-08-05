@@ -33,7 +33,18 @@ contract LotteryManager {
     event EditTable(string beforeHash, string newHash);
     event JoinTable(address player, uint256 count, uint256 number, string hash);
     //table的hash、第几轮、奖金池大小、开奖结果、赢家、赢家获得的金额、所有玩家、玩家下注号码、玩家下注数量
-    event StartRound(string hash, uint256 round, uint256 poolAmount, uint256 roundNumber, address[] roundWinnerArray, uint256[] winnerCount, int256[] rewards, address[] allPlayers, uint256[] numbers, uint256[] counts);
+    event StartRound(
+        string hash,//table的hash
+        uint256 round,//第几轮
+        uint256 poolAmount,//奖金池大小
+        uint256 roundNumber,//开奖结果
+        address[] roundWinnerArray,//赢家
+        uint256[] winnerCount,//赢家下注数量
+        int256[] rewards,//玩家本局输赢金额
+        address[] allPlayers,//所有玩家
+        uint256[] numbers,//玩家下注号码
+        uint256[] counts//玩家下注数量
+    );
     event BankerCommission(address player, address banker, uint256 amount);
     event ReferCommission(address player, address refer, uint256 amount);
     //table的hash、第几轮、所有玩家, 玩家下注号码，玩家下注数量
@@ -51,11 +62,10 @@ contract LotteryManager {
     }
 
     modifier roundNoReentrant(string memory hash) {
-        bool locked = roundLock[hash];
-        require(!locked, "No re-entrancy round");
-        locked = true;
+        require(!roundLock[hash], "No re-entrancy round");
+        roundLock[hash] = true;
         _;
-        locked = false;
+        roundLock[hash] = false;
     }
 
     //创建table
@@ -173,7 +183,7 @@ contract LotteryManager {
         uint256 poolAmount = tablePool[tableAddress];
         console.log("poolAmount, roundResult.winners.length", poolAmount, roundResult.winners.length);
         //计算一份奖金是多少
-        (bool flag, uint256 onePieceReward)= poolAmount.tryDiv(roundResult.winnerAllCount);
+        (bool flag, uint256 onePieceReward) = poolAmount.tryDiv(roundResult.winnerAllCount);
         console.log("onePieceReward", onePieceReward);
         //按allPlayers计算玩家输赢多少
         for(uint256 i = 0; i < roundResult.players.length; i++) {

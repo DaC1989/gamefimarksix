@@ -22,7 +22,7 @@ contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall
         uint256 maxPPL, uint256 coolDownTime, uint256 gameTime,
         uint256 bankerCommission, uint256 referralCommission, address bankerWallet) external view override
     returns (address table) {
-        uint256 hash = uint256(keccak256(abi.encodePacked(amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
+        uint256 hash = uint256(keccak256(abi.encodePacked(address(this), amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
         table = tableMap[creator][hash];
     }
 
@@ -42,7 +42,7 @@ contract LotteryFactory is ILotteryFactory, LotteryTableDeployer, NoDelegateCall
         require(referralCommission > 0);
         require(bankerWallet != address(0));
 
-        uint256 hash = uint256(keccak256(abi.encodePacked(amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
+        uint256 hash = uint256(keccak256(abi.encodePacked(address(this), amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet)));
         require(tableMap[creator][hash] == address(0));
         table = deploy(managerContract, address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet);
         tableMap[creator][hash] = table;

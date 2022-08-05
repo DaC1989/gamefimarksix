@@ -76,13 +76,10 @@ contract LotteryTable is ILotteryTable, ReentrancyGuard{
         for(uint256 i = 0; i < _round.numbers.length; i++) {
             if (roundNumber == _round.numbers[i]) {
                 _round.winners.push(_round.players[i]);
-                _round.winnerCountMap[_round.players[i]] += _round.counts[i];
+                _round.winnerCount.push(_round.counts[i]);
                 _round.winnerAllCount += _round.counts[i];
             }
 
-        }
-        for (uint256 i = 0; i < _round.winners.length; i++) {
-            _round.winnerCount.push(_round.winnerCountMap[_round.winners[i]]);
         }
 
         roundResult.round = _roundCount.current();

@@ -23,12 +23,9 @@ async function calculateGas(from, to, data) {
 }
 
 // erc20 deployed to: 0x73D66092F96F808cEDF399c22BE732318D347FCe
-// lotteryFactory deployed to: 0x8668eF8D1de4BEFea5cD9403C320d3324B4CA98d
-// lotteryManager deployed to: 0xC1c452a56d4277EFd8892ab03B7180eeb88d8E5B
-
 
 const abiJson = require("../artifacts/contracts/LotteryManager.sol/LotteryManager.json");
-const contractAddress = "0xC1c452a56d4277EFd8892ab03B7180eeb88d8E5B";
+const contractAddress = "0x2384773fE5906B45317e3F4aced7d22E4f30298c";
 const accA = "4598f0b7b1d52313eff063f4b2b2d75564a698cef5747d3189f96f0abb167235";
 let erc20ABIJson = require("../artifacts/contracts/TestERC20.sol/TestERC20.json");
 const erc20Address = "0x73D66092F96F808cEDF399c22BE732318D347FCe";
@@ -115,7 +112,7 @@ async function startRound(hash) {
     try {
         let result = await contract.methods.startRoundV2(hash).send({
             gasPrice: gasPrice,
-            gas: gasNeeded * 2,
+            gas: gasNeeded,
             from: wallet.address
         }).once('sent', function (payload) {
             console.log('sent', payload)
@@ -131,7 +128,6 @@ async function startRound(hash) {
     } catch (e) {
         console.log("e", e);
     }
-    console.log("transHash", transHash);
     // let result2 = await web3.eth.getTransactionReceipt('0xaf798ea123b793d99af1c36ba03c927e9e5aa1ec5ddd5d26999d3c5dea78b629');
     // console.log("result2.logs", result2.logs);
     // let decodedLogs = logsDecoder.decodeLogs(result2.logs);
@@ -143,19 +139,19 @@ async function startRound(hash) {
 async function testHoldingTicket(hashString) {
     web3.eth.accounts.wallet.add(accA);
     let wallet = web3.eth.accounts.privateKeyToAccount(accA);
-    let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
-    let result = await lotteryManager.methods.holdingTicket(hashString).call({from:wallet.address});
+    let result = await contract.methods.holdingTicket(hashString).call({from:wallet.address});
     console.log("result", result);
 }
 
 
-// createTableIfNecessary();
+createTableIfNecessary();
 // joinTable(1, 2, "59638374068026126455012704085720935665581539865328318513549580719217222975603");
 // manangerApproveContract();
 //testHoldingTicket("59638374068026126455012704085720935665581539865328318513549580719217222975603");
 // 46495648773727286948702670389830856155501528355533819124473569087233644039955 10
 // 72504804741705690193767731652589755094368416868913544711784094133993040218870 20
-startRound("72504804741705690193767731652589755094368416868913544711784094133993040218870");
+// startRound("72504804741705690193767731652589755094368416868913544711784094133993040218870");
+// testHoldingTicket("72504804741705690193767731652589755094368416868913544711784094133993040218870")
 
 
 
