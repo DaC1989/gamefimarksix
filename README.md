@@ -12,7 +12,8 @@
            uint256 gameTime,//游戏开始时间
            uint256 bankerCommission, //庄家佣金比例，按万分之一计算
            uint256 referralCommission, //推荐佣金比例，按万分之一计算
-           address bankerWallet //庄家钱包
+           address bankerWallet, //庄家钱包
+           uint256 delayBlock //延迟开奖高度数量
    )
    external 
    onlyManagerOwner 
@@ -71,38 +72,39 @@
      uint256 bankerCommission;//庄家佣金比例，按万分之一计算
      uint256 referralCommission;//推荐佣金比例，按万分之一计算
      address bankerWallet;//庄家钱包
+     uint256 delayBlock; //延迟开奖高度数量
    }
    ```
 
-   1. startRoundV2, 游戏开奖
+   startRoundV2, 游戏开奖
 
-      ```solidity
-      function startRoundV2(
-          string memory hash //table的hash
-      ) 
-      external 
-      onlyManagerOwner 
-      payable
-      returns (bool);
+   ```solidity
+   function startRoundV2(
+       string memory hash //table的hash
+   ) 
+   external 
+   onlyManagerOwner 
+   payable
+   returns (bool);
    
-      event StartRound(
-              string hash,//table的hash
-              uint256 round,//第几轮
-              uint256 poolAmount,//奖金池大小
-              uint256 roundNumber,//开奖结果
-              address[] roundWinnerArray,//赢家
-              uint256[] winnerCount,//赢家下注数量
-              int256[] rewards,//玩家本局输赢金额
-              address[] allPlayers,//所有玩家
-              uint256[] numbers,//玩家下注号码
-              uint256[] counts//玩家下注数量
-      );
+   event StartRound(
+           string hash,//table的hash
+           uint256 round,//第几轮
+           uint256 poolAmount,//奖金池大小
+           uint256 roundNumber,//开奖结果
+           address[] roundWinnerArray,//赢家
+           uint256[] winnerCount,//赢家下注数量
+           int256[] rewards,//玩家本局输赢金额
+           address[] allPlayers,//所有玩家
+           uint256[] numbers,//玩家下注号码
+           uint256[] counts//玩家下注数量
+   );
    
-      event EditTable(
-          string beforeHash, //修改前的table hash
-          string newHash //修改后的table hash
-      );
-      ```
+   event EditTable(
+       string beforeHash, //修改前的table hash
+       string newHash //修改后的table hash
+   );
+   ```
 
 4. referral，邀请
 
@@ -131,8 +133,24 @@
         uint256[] memory numbers, //玩家下注号码
         uint256[] memory counts //玩家下注数量
    );
+   ```
    
+6. notifyCoolDownTime, 通知合约table已到cool down time
+
+   ```solidity
+   function notifyCoolDownTime(
+   	string memory hash //table hash
+   ) 
+   external 
+   onlyManagerOwner 
+   returns (
+     uint256 coolDownTimeBlock //cool down time 时刻的高度
+   );
    
+   event NotifyCoolDownTime(
+     string hash,//table的hash
+     uint256 coolDownTimeBlock//cool down time 时刻的高度
+   );
    ```
 
    
