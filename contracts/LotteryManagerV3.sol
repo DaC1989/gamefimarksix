@@ -43,12 +43,12 @@ contract LotteryManagerV3 {
         string hash,//table的hash
         uint256 coolDownTimeBlock//cool down time 时刻的高度
     );
-    //table的hash、第几轮、奖金池大小、开奖结果、赢家、赢家获得的金额、所有玩家、玩家下注号码、玩家下注数量
     event StartRound(
         string hash,//table的hash
         uint256 round,//第几轮
         uint256 poolAmount,//奖金池大小
         uint256 roundNumber,//开奖结果
+        uint256[] prizeNumbers,//中奖号码
         address[] roundWinnerArray,//赢家
         uint256[] winnerCount,//赢家下注数量
         int256[] rewards,//玩家本局输赢金额
@@ -163,7 +163,7 @@ contract LotteryManagerV3 {
     }
 
     //msg.sender is player
-    // count: 下注数量, number:下注数字, tableInfo:创建合约参数
+    // count: 下注数量, number:选择号码, tableInfo:创建合约参数
     function joinTableV2(
         uint256 count,
         uint256 number,
@@ -174,10 +174,14 @@ contract LotteryManagerV3 {
     returns (
         bool result
     ) {
-        address referraler = referralMap[msg.sender];
         address tableAddress = hashTableMap[hash];
         require(tableAddress != address(0), "no table with the hash, please check the hash!");
+        uint256 coolDownTimeBlock = tableBlock[tableAddress];
+        if (coolDownTimeBlock != 0 && block.number >= coolDownTimeBlock) {
+            revert("arrived cool down time block, can not join this round!");
+        }
 
+        address referraler = referralMap[msg.sender];
         LotteryTableV3 lotteryTable = LotteryTableV3(tableAddress);
         ILotteryTableV3.JoinInfo memory joinInfo = ILotteryTableV3.JoinInfo({player: msg.sender, count:count, number: number, referraler:referraler});
         lotteryTable.joinTable(joinInfo);
@@ -233,6 +237,7 @@ contract LotteryManagerV3 {
         //校验cool down time的高度
         uint256 coolDownTimeBlock = tableBlock[tableAddress];
         require(coolDownTimeBlock > 0, "wrong coolDownTimeBlock");
+
         ILotteryTableV3.RoundResult memory roundResult = lotteryTableV3.start(coolDownTimeBlock);
         console.log("round, roundNumber, roundResult.winnerAllCount", roundResult.round, roundResult.roundNumber, roundResult.winnerAllCount);
         uint256 poolAmount = tablePool[tableAddress];
@@ -263,11 +268,11 @@ contract LotteryManagerV3 {
                 //给赢家转账
                 uint256 winAmount = onePieceReward.mul(count);
                 console.log("tablePool[tableAddress], winAmount", tablePool[tableAddress], winAmount);
-                //require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
-                //TODO 为啥polygon会报错？先这么设置
-                if (tablePool[tableAddress] < winAmount) {
-                    winAmount = tablePool[tableAddress];
-                }
+                require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
+                //TODO 为啥polygon会报错，而内存链不会？先这么设置
+//                if (tablePool[tableAddress] < winAmount) {
+//                    winAmount = tablePool[tableAddress];
+//                }
                 tablePool[tableAddress] -= winAmount;
                 if (uint160(winner) < uint160(1000000000)) {
                     console.log("winner is robot, winAmount", winAmount);
@@ -282,10 +287,11 @@ contract LotteryManagerV3 {
         _tryEditTable(tableAddress);
         //事件
         {
-        int256[] memory rewards = rewardsMap[tableAddress];
-        emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber, roundResult.winners, roundResult.winnerCount, rewards, roundResult.players, roundResult.numbers, roundResult.counts);
+            int256[] memory rewards = rewardsMap[tableAddress];
+            emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber, roundResult.prizeNumbers, roundResult.winners, roundResult.winnerCount, rewards, roundResult.players, roundResult.numbers, roundResult.counts);
         }
         delete rewardsMap[tableAddress];
+        delete tableBlock[tableAddress];
         return true;
     }
 

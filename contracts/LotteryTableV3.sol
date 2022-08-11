@@ -27,6 +27,7 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         uint256[] numbers;//下注号码
         uint256[] counts;//下注数
 
+        uint256[] prizeNumbers;//中奖号码
         address[] winners;//赢家
         mapping(address => uint256) winnerCountMap;//赢家下注数
         uint256[] winnerCount;//赢家多次下注数
@@ -78,19 +79,49 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
     function start(uint256 coolDownTimeBlock) external nonReentrant onlyManagerContract returns(RoundResult memory roundResult) {
         _roundCount.increment();
 
-        uint256 resultBlock = coolDownTimeBlock.add(tableInfo.delayBlocks);
         bytes32 hash = _getResultBlockHash(coolDownTimeBlock);
         uint256 roundNumber = _getFirstDecimalFromHash(hash);
+
+        //与roundNumber差值最小的号码为中奖号码
+        int256 minimum;//最小差值
         for(uint256 i = 0; i < _round.numbers.length; i++) {
-            if (roundNumber == _round.numbers[i]) {
+            int256 diff = int256(_round.numbers[i]) - int256(roundNumber);
+            if (diff < 0) {
+                diff = diff * (-1);
+            }
+            if (i == 0) {
+                minimum = diff;
+                continue;
+            }
+            if (diff < minimum) {
+                minimum = diff;
+            }
+        }
+        console.log("minimum", uint256(minimum));
+        for(uint256 i = 0; i < _round.numbers.length; i++) {
+            int256 diff = int256(_round.numbers[i]) - int256(roundNumber);
+            if (diff < 0) {
+                diff = diff * (-1);
+            }
+            if (diff == minimum) {
+                console.log("prizeNumber", _round.numbers[i]);
+                _round.prizeNumbers.push(_round.numbers[i]);
                 _round.winners.push(_round.players[i]);
                 _round.winnerCount.push(_round.counts[i]);
                 _round.winnerAllCount += _round.counts[i];
             }
         }
 
+//        for(uint256 i = 0; i < _round.numbers.length; i++) {
+//            if (roundNumber == _round.numbers[i]) {
+//                _round.winners.push(_round.players[i]);
+//                _round.winnerCount.push(_round.counts[i]);
+//                _round.winnerAllCount += _round.counts[i];
+//            }
+//        }
         roundResult.round = _roundCount.current();
         roundResult.roundNumber = roundNumber;
+        roundResult.prizeNumbers = _round.prizeNumbers;
         roundResult.winnerAllCount = _round.winnerAllCount;
         roundResult.players = _round.players;
         roundResult.numbers = _round.numbers;
@@ -101,17 +132,16 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         delete _round;
     }
 
-    function _getRandom(uint256 playersLength) private view returns(uint256 randomNumber) {
-        randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, playersLength)));
-    }
-
     function _getResultBlockHash(uint256 coolDownTimeBlock) private view returns(bytes32 hash) {
+        uint resultBlock = coolDownTimeBlock.add(tableInfo.delayBlocks);
+        require(block.number > resultBlock, "current block height must higher then result block!");
+        require(block.number - resultBlock < 256, "result block is too old!");
         hash = blockhash(coolDownTimeBlock.add(tableInfo.delayBlocks));
         console.log("hash to uint", uint256(hash));
         console.log("hash to toHexString", uint256(hash).toHexString());
     }
 
-    function _getFirstDecimalFromHash(bytes32 hash) private view returns (uint256 number) {
+    function _getFirstDecimalFromHash(bytes32 hash) private pure returns (uint256 number) {
         uint256 result;
         for(uint256 i = 0; i < hash.length; i++) {
             uint8 toInt = uint8(hash[hash.length - i - 1]);

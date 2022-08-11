@@ -30,9 +30,10 @@ interface ILotteryTableV3 {
     }
 
     struct RoundResult {
-        uint256 round;
-        uint256 roundNumber;
-        address[] players;
+        uint256 round;//第几局
+        uint256 roundNumber;//开奖号码
+        uint256[] prizeNumbers;//中奖号码
+        address[] players;//所有玩家
         uint256[] numbers;//玩家号码
         uint256[] counts;//玩家下注数
         uint256 winnerAllCount;//本局总的中奖下注数量
