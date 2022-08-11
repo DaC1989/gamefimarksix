@@ -1,4 +1,4 @@
-# LotteryManager合约接口
+# LotteryManagerV3合约接口
 
 1. createTableIfNecessary，创建桌子
 
@@ -76,7 +76,8 @@
    }
    ```
 
-   startRoundV2, 游戏开奖
+
+4. startRoundV2, 游戏开奖
 
    ```solidity
    function startRoundV2(
@@ -92,6 +93,7 @@
            uint256 round,//第几轮
            uint256 poolAmount,//奖金池大小
            uint256 roundNumber,//开奖结果
+           uint256[] prizeNumbers,//中奖号码,与roundWinnerArray一一对应
            address[] roundWinnerArray,//赢家
            uint256[] winnerCount,//赢家下注数量
            int256[] rewards,//玩家本局输赢金额
@@ -106,7 +108,7 @@
    );
    ```
 
-4. referral，邀请
+5. referral，邀请
 
    ```solidity
    function referral(
@@ -118,7 +120,7 @@
    returns (bool result);
    ```
 
-5. holdingTicket，查询当前游戏情况
+6. holdingTicket，查询当前游戏情况
 
    ```solidity
    function holdingTicket(
@@ -135,7 +137,7 @@
    );
    ```
    
-6. notifyCoolDownTime, 通知合约table已到cool down time
+7. notifyCoolDownTime, 通知合约table已到cool down time
 
    ```solidity
    function notifyCoolDownTime(
