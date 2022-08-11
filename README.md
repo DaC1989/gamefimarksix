@@ -155,5 +155,18 @@
    );
    ```
 
+8. getCoolDownTimeBlock，查询cool down time block
+
+   ```solidity
+   function getCoolDownTimeBlock(
+   	string memory hash //table的hash
+   )
+   external
+   view
+   returns(
+   	uint256 coolDownTimeBlock //cool down time 时刻的高度
+   );
+   ```
+
    
 
