@@ -8,10 +8,10 @@ const web3 = new Web3(url);
 // const web3 = createAlchemyWeb3(url);
 
 // erc20 deployed to: 0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447
-// lotteryManagerV3 deployed to: 0x6017316c6f23535f077b734b3Bb04fcbEE78FaE8
+// lotteryManagerV3 deployed to: 0xac598854260723CB4D83148225BBeE60f535E26f
 
 const abiJson = require("../artifacts/contracts/LotteryManagerV3.sol/LotteryManagerV3.json");
-const contractAddress = "0x6017316c6f23535f077b734b3Bb04fcbEE78FaE8";
+const contractAddress = "0xac598854260723CB4D83148225BBeE60f535E26f";
 const accA = "76fc79ab66aa7823543d7754d9ba57aad3d80d957ca8719489baedeb0d362b8d";
 const erc20Address = "0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447";
 let erc20ABIJson = require("../artifacts/contracts/TestERC20.sol/TestERC20.json");
@@ -194,6 +194,14 @@ async function joinTable(count, number, hash) {
     console.log("joinTable", result);
 }
 
+async function getCoolDownTimeBlock(hash) {
+    web3.eth.accounts.wallet.add(accA);
+    let wallet = web3.eth.accounts.privateKeyToAccount(accA);
+    let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
+    let result = await lotteryManager.methods.getCoolDownTimeBlock(hash).call({from:wallet.address});
+    console.log("result", result);
+}
+
 async function getUSDTBalance(address) {
     let balance = await erc20.methods.balanceOf(address).call();
     console.log("getBalance of address", Web3.utils.fromWei(balance));
@@ -213,7 +221,7 @@ let hash = "96960858409662686889941291405022178343652862133237785188686581123087
 // startRound(hash);
 // testEstimateGas();
 // testHoldingTicket();
-// transferUSDT("0x4cc0C11426E8cd3E505fF9A65050FF89a21f10D4");
+transferUSDT("0x91Fb49C4D1b45Ff8a9eF5A863cfE96ede7D1DDdC");
 // referral("0xC0b87B15Af3078802ABd6754520439eA1DA0fe6D", "0x33E3eCe14f35DD7f031Eb277405044f7e5fBd8E2");
-joinTable(1, 2, hash);
+// joinTable(1, 2, hash);
 

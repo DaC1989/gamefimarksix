@@ -364,6 +364,19 @@ contract LotteryManagerV3 {
         counts = roundInfo.counts;
     }
 
+    //查询cool down time block
+    function getCoolDownTimeBlock(string memory hash)
+    external
+    view
+    returns(
+        uint256 coolDownTimeBlock
+    ) {
+        address tableAddress = hashTableMap[hash];
+        require(tableAddress != address(0), "please check the address!");
+
+        coolDownTimeBlock = tableBlock[tableAddress];
+    }
+
     //修改table的manage contract
     function changeTableManager(string memory hash, address newManagerContract)
     external
@@ -384,5 +397,7 @@ contract LotteryManagerV3 {
         owner = newOwner;
         result = true;
     }
+
+
 
 }

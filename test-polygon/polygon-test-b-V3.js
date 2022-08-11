@@ -8,10 +8,10 @@ const web3 = new Web3(wss);
 // const web3 = createAlchemyWeb3(url);
 
 // erc20 deployed to: 0x73D66092F96F808cEDF399c22BE732318D347FCe
-// lotteryManagerV3 deployed to: 0x7F2a3bf3844c5A7f5B43Cb63DFa48d66aa96b17D
+// lotteryManagerV3 deployed to: 0xB765334A2224d0C64E013C2fd6e608d9afB39b57
 
 const abiJson = require("../artifacts/contracts/LotteryManagerV3.sol/LotteryManagerV3.json");
-const contractAddress = "0x7F2a3bf3844c5A7f5B43Cb63DFa48d66aa96b17D";
+const contractAddress = "0xB765334A2224d0C64E013C2fd6e608d9afB39b57";
 const accA = "4598f0b7b1d52313eff063f4b2b2d75564a698cef5747d3189f96f0abb167235";
 const erc20Address = "0x73D66092F96F808cEDF399c22BE732318D347FCe";
 let erc20ABIJson = require("../artifacts/contracts/TestERC20.sol/TestERC20.json");
@@ -194,6 +194,14 @@ async function joinTable(count, number, hash) {
     console.log("joinTable", result);
 }
 
+async function getCoolDownTimeBlock(hash) {
+    web3.eth.accounts.wallet.add(accA);
+    let wallet = web3.eth.accounts.privateKeyToAccount(accA);
+    let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
+    let result = await lotteryManager.methods.getCoolDownTimeBlock(hash).call({from:wallet.address});
+    console.log("result", result);
+}
+
 async function getUSDTBalance(address) {
     let balance = await erc20.methods.balanceOf(address).call();
     console.log("getBalance of address", Web3.utils.fromWei(balance));
@@ -204,16 +212,17 @@ async function getMaticBalance(address) {
     console.log("getBalance of address", Web3.utils.fromWei(balance));
 }
 
-let hash = "89093778410453443819291117980396852172753631494452006124042334240840703806593";
+let hash = "50954390346258230993582823657862097237191444893414219085934951807597808466527";
 // getUSDTBalance('0x29Bf30f822E93582b8ABcA1788eB142021f44EDb');
 // getMaticBalance('0x149bd24c00A24b3E2FdB46D17740f0aA1E99d2cD');
 // createTableIfNecessary();
 // notifyCoolDownTime(hash);
 // manangerApproveContract();
-startRound(hash);//27567924
+// startRound(hash);//
 // testEstimateGas();
 // testHoldingTicket();
 // transferUSDT("0x4cc0C11426E8cd3E505fF9A65050FF89a21f10D4");
 // referral("0xC0b87B15Af3078802ABd6754520439eA1DA0fe6D", "0x33E3eCe14f35DD7f031Eb277405044f7e5fBd8E2");
 // joinTable(1, 2, hash);
+getCoolDownTimeBlock(hash);
 
