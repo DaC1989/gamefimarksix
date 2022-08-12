@@ -8,10 +8,10 @@ const web3 = new Web3(wss);
 // const web3 = createAlchemyWeb3(url);
 
 // erc20 deployed to: 0x73D66092F96F808cEDF399c22BE732318D347FCe
-// lotteryManagerV3 deployed to: 0xB765334A2224d0C64E013C2fd6e608d9afB39b57
+// lotteryManagerV3 deployed to: 0xB65E77fafEbdA014507C8E3ef5BC17dB4080787D
 
 const abiJson = require("../artifacts/contracts/LotteryManagerV3.sol/LotteryManagerV3.json");
-const contractAddress = "0xB765334A2224d0C64E013C2fd6e608d9afB39b57";
+const contractAddress = "0xB65E77fafEbdA014507C8E3ef5BC17dB4080787D";
 const accA = "4598f0b7b1d52313eff063f4b2b2d75564a698cef5747d3189f96f0abb167235";
 const erc20Address = "0x73D66092F96F808cEDF399c22BE732318D347FCe";
 let erc20ABIJson = require("../artifacts/contracts/TestERC20.sol/TestERC20.json");
@@ -61,7 +61,7 @@ async function notifyCoolDownTime(hashString) {
         gas: gasNeeded2,
         from: wallet.address
     }).on('receipt', function (receipt) {
-        console.log('receipt', receipt.events.NotifyCoolDownTime.returnValues);
+        console.log("receipt.events", receipt.events);
     }).on("error", function (err) {
         console.log("notifyCoolDownTime err", err);
     });
@@ -212,7 +212,7 @@ async function getMaticBalance(address) {
     console.log("getBalance of address", Web3.utils.fromWei(balance));
 }
 
-let hash = "50954390346258230993582823657862097237191444893414219085934951807597808466527";
+let hash = "19602372069284003762835128068417702329170877609337899547162407984012085880345";
 // getUSDTBalance('0x29Bf30f822E93582b8ABcA1788eB142021f44EDb');
 // getMaticBalance('0x149bd24c00A24b3E2FdB46D17740f0aA1E99d2cD');
 // createTableIfNecessary();

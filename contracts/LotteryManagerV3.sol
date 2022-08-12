@@ -24,6 +24,7 @@ contract LotteryManagerV3 {
     mapping(address => uint256) private tablePool;
     mapping(address => int256[]) private rewardsMap;
     mapping(address => uint256) private tableBlock;//table的cool down time高度
+    mapping(address => uint256) private notifyTimestampMap;//table设置cool down time时的时间戳
 
     mapping(address => ILotteryTableV3.TableInfo) private waitEdit;
     mapping(string => bool) roundLock;
@@ -41,7 +42,8 @@ contract LotteryManagerV3 {
     );
     event NotifyCoolDownTime(
         string hash,//table的hash
-        uint256 coolDownTimeBlock//cool down time 时刻的高度
+        uint256 coolDownTimeBlock,//cool down time 时刻的高度
+        uint256 notifyTimestamp
     );
     event StartRound(
         string hash,//table的hash
@@ -292,6 +294,7 @@ contract LotteryManagerV3 {
         }
         delete rewardsMap[tableAddress];
         delete tableBlock[tableAddress];
+        delete notifyTimestampMap[tableAddress];
         return true;
     }
 
@@ -325,8 +328,10 @@ contract LotteryManagerV3 {
         coolDownTimeBlock = block.number;
         console.log("block.number", coolDownTimeBlock);
         tableBlock[tableAddress] = coolDownTimeBlock;
+        uint256 timestamp = block.timestamp;
+        notifyTimestampMap[tableAddress] = block.timestamp;
 
-        emit NotifyCoolDownTime(hash, coolDownTimeBlock);
+        emit NotifyCoolDownTime(hash, coolDownTimeBlock, block.timestamp);
     }
 
     //referral a:被邀请人；b：邀请人
@@ -369,12 +374,14 @@ contract LotteryManagerV3 {
     external
     view
     returns(
-        uint256 coolDownTimeBlock
+        uint256 coolDownTimeBlock,
+        uint256 notifyTimestamp
     ) {
         address tableAddress = hashTableMap[hash];
         require(tableAddress != address(0), "please check the address!");
 
         coolDownTimeBlock = tableBlock[tableAddress];
+        notifyTimestamp = notifyTimestampMap[tableAddress];
     }
 
     //修改table的manage contract
