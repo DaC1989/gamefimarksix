@@ -151,10 +151,11 @@
    
    event NotifyCoolDownTime(
      string hash,//table的hash
-     uint256 coolDownTimeBlock//cool down time 时刻的高度
+     uint256 coolDownTimeBlock,//cool down time 时刻的高度
+     uint256 notifyTimestamp //设置cool down time时的时间戳
    );
    ```
-
+   
 8. getCoolDownTimeBlock，查询cool down time block
 
    ```solidity
@@ -164,7 +165,8 @@
    external
    view
    returns(
-   	uint256 coolDownTimeBlock //cool down time 时刻的高度
+   	uint256 coolDownTimeBlock, //cool down time 时刻的高度
+   	uint256 notifyTimestamp //设置cool down time时的时间戳
    );
    ```
 
