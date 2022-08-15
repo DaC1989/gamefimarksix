@@ -62,7 +62,7 @@
    external 
    onlyManagerOwner
    
-   struct ILotteryTable.TableInfo {
+   struct ILotteryTableV3.TableInfo {
      address creator;//创建者
      uint256 amount;//金额
      uint256 minPPL;//最小参加人数
@@ -168,6 +168,31 @@
    	uint256 coolDownTimeBlock, //cool down time 时刻的高度
    	uint256 notifyTimestamp //设置cool down time时的时间戳
    );
+   ```
+
+9. getTableInfo, 查询table信息
+
+   ```solidity
+   function getTableInfo(
+   	string memory hash//table的hash
+   ) 
+   external
+   view
+   returns(
+   	ILotteryTableV3.TableInfo memory tableInfo
+   )
+   struct ILotteryTableV3.TableInfo {
+     address creator;//创建者
+     uint256 amount;//金额
+     uint256 minPPL;//最小参加人数
+     uint256 maxPPL;//最大参加人数
+     uint256 coolDownTime;//游戏冷却时间
+     uint256 gameTime;//游戏开始时间
+     uint256 bankerCommission;//庄家佣金比例，按万分之一计算
+     uint256 referralCommission;//推荐佣金比例，按万分之一计算
+     address bankerWallet;//庄家钱包
+     uint256 delayBlock; //延迟开奖高度数量
+   }
    ```
 
    
