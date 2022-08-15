@@ -384,6 +384,18 @@ contract LotteryManagerV3 {
         notifyTimestamp = notifyTimestampMap[tableAddress];
     }
 
+    function getTableInfo(string memory hash) external
+    view
+    returns(
+        ILotteryTableV3.TableInfo memory tableInfo
+    ) {
+        address tableAddress = hashTableMap[hash];
+        require(tableAddress != address(0), "please check the address!");
+
+        LotteryTableV3 lotteryTable = LotteryTableV3(tableAddress);
+        tableInfo = lotteryTable.getTableInfo();
+    }
+
     //修改table的manage contract
     function changeTableManager(string memory hash, address newManagerContract)
     external

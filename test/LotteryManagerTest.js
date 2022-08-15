@@ -249,7 +249,9 @@ describe("LotteryManager", function () {
         for (const event of notifyCoolDownTimeTxReceipt.events) {
             console.log(`notifyCoolDownTimeTxReceipt ${event.event} with args ${event.args}`);
         }
-        //
+        //getTableInfo
+        const getTableInfoTx = await lotteryManager.getTableInfo(hashString);
+        console.log("getTableInfoTxReceipt", getTableInfoTx)
 
         //start round
         await erc20.approve(lotteryManager.address, erc20.balanceOf(signers[0].address));

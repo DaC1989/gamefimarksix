@@ -112,13 +112,6 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
             }
         }
 
-//        for(uint256 i = 0; i < _round.numbers.length; i++) {
-//            if (roundNumber == _round.numbers[i]) {
-//                _round.winners.push(_round.players[i]);
-//                _round.winnerCount.push(_round.counts[i]);
-//                _round.winnerAllCount += _round.counts[i];
-//            }
-//        }
         roundResult.round = _roundCount.current();
         roundResult.roundNumber = roundNumber;
         roundResult.prizeNumbers = _round.prizeNumbers;
@@ -132,9 +125,15 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         delete _round;
     }
 
+
+
+    function _handleJackpot(uint256[] memory winners, uint256[] memory winnerNumbers) private {
+        //赢家选择的号码
+    }
+
     function _getResultBlockHash(uint256 coolDownTimeBlock) private view returns(bytes32 hash) {
         uint resultBlock = coolDownTimeBlock.add(tableInfo.delayBlocks);
-        require(block.number > resultBlock, "current block height must higher then result block!");
+        require(block.number > resultBlock, "current block height must higher than result block!");
         require(block.number - resultBlock < 256, "result block is too old!");
         hash = blockhash(coolDownTimeBlock.add(tableInfo.delayBlocks));
         console.log("hash to uint", uint256(hash));
