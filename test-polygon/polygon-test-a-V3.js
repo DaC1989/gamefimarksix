@@ -202,6 +202,14 @@ async function getCoolDownTimeBlock(hash) {
     console.log("result", result);
 }
 
+async function getTableInfo(hash) {
+    web3.eth.accounts.wallet.add(accA);
+    let wallet = web3.eth.accounts.privateKeyToAccount(accA);
+    let lotteryManager = new web3.eth.Contract(abiJson.abi, contractAddress);
+    let result = await lotteryManager.methods.getTableInfo(hash).call({from:wallet.address});
+    console.log("result", result);
+}
+
 async function getUSDTBalance(address) {
     let balance = await erc20.methods.balanceOf(address).call();
     console.log("getBalance of address", Web3.utils.fromWei(balance));
@@ -221,7 +229,7 @@ let hash = "96960858409662686889941291405022178343652862133237785188686581123087
 // startRound(hash);
 // testEstimateGas();
 // testHoldingTicket();
-transferUSDT("0x91Fb49C4D1b45Ff8a9eF5A863cfE96ede7D1DDdC");
+// transferUSDT("0xDA706173c882CEC31B7e45A91a1e29c18b9CfAA8");
 // referral("0xC0b87B15Af3078802ABd6754520439eA1DA0fe6D", "0x33E3eCe14f35DD7f031Eb277405044f7e5fBd8E2");
 // joinTable(1, 2, hash);
 

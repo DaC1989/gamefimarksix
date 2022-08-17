@@ -25,6 +25,7 @@ contract LotteryManagerV3 {
     mapping(address => int256[]) private rewardsMap;
     mapping(address => uint256) private tableBlock;//table的cool down time高度
     mapping(address => uint256) private notifyTimestampMap;//table设置cool down time时的时间戳
+    mapping(address => uint256) private jackpotPool;//jackpot
 
     mapping(address => ILotteryTableV3.TableInfo) private waitEdit;
     mapping(string => bool) roundLock;
@@ -56,7 +57,8 @@ contract LotteryManagerV3 {
         int256[] rewards,//玩家本局输赢金额
         address[] allPlayers,//所有玩家
         uint256[] numbers,//玩家下注号码
-        uint256[] counts//玩家下注数量
+        uint256[] counts,//玩家下注数量
+        address[] jackpotWinners //jackpot赢家
     );
     event BankerCommission(
         address player,
@@ -68,6 +70,16 @@ contract LotteryManagerV3 {
         address refer,
         uint256 amount
     );
+    event JackpotCommission(
+        address player,
+        uint256 amount,
+        uint256 all //当前table的jackpot金额
+    );
+    event JackpotWinner(
+        address player, //jackpot 赢家
+        uint256 jackpotPrize //jackpot奖金
+    );
+
     //table的hash、第几轮、所有玩家, 玩家下注号码，玩家下注数量
     event HoldingTicket(
         string hash,
@@ -108,7 +120,8 @@ contract LotteryManagerV3 {
         uint256 bankerCommission,
         uint256 referralCommission,
         address bankerWallet,
-        uint256 delayBlock //延迟开奖高度数量
+        uint256 delayBlock, //延迟开奖高度数量
+        uint256 jackpotCommission
     )
     external
     onlyManagerOwner
@@ -117,11 +130,11 @@ contract LotteryManagerV3 {
         string memory hashString
     ) {
         require(msg.sender == owner, "Only contract owner is allowed to call this function");
-        address table = ILotteryFactoryV3(factory).getTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock);
+        address table = ILotteryFactoryV3(factory).getTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission);
         if (table == address(0)) {
-            table = ILotteryFactoryV3(factory).createTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock);
+            table = ILotteryFactoryV3(factory).createTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission);
         }
-        uint256 hash = uint256(keccak256(abi.encode(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock)));
+        uint256 hash = uint256(keccak256(abi.encode(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission)));
         hashString = hash.toString();
         hashTableMap[hashString] = table;
         tableHashMap[table] = hashString;
@@ -151,7 +164,9 @@ contract LotteryManagerV3 {
             LotteryTableV3 lotteryTable = LotteryTableV3(tableAddress);
             lotteryTable.updateTableInfo(tableInfo);
             //更新hash
-            uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL, tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission, tableInfo.bankerWallet)));
+            uint256 hash = uint256(keccak256(abi.encode(tableInfo.creator, tableInfo.amount, tableInfo.minPPL, tableInfo.maxPPL,
+                tableInfo.coolDownTime, tableInfo.gameTime, tableInfo.bankerCommission, tableInfo.referralCommission,
+                tableInfo.bankerWallet, tableInfo.delayBlocks, tableInfo.jackpotCommission)));
             hashTableMap[hash.toString()] = tableAddress;
             tableHashMap[tableAddress] = hash.toString();
             //删除数据
@@ -210,6 +225,17 @@ contract LotteryManagerV3 {
             tablePool[tableAddress] -= bankerCommissionAmount;
             token.transfer(tableInfo.bankerWallet, bankerCommissionAmount);
             emit BankerCommission(msg.sender, tableInfo.bankerWallet, bankerCommissionAmount);
+
+            //jackpotCommission
+            if (tableInfo.jackpotCommission > 0) {
+                uint256 jackpotCommissionAmount = bankerCommissionAmount.div(10000).mul(tableInfo.jackpotCommission);
+                require(tablePool[tableAddress] >= jackpotCommissionAmount, "Table pool not enough for jackpotCommission!");
+                //减少资金池
+                tablePool[tableAddress] -= jackpotCommissionAmount;
+                //增加jackpot池
+                jackpotPool[tableAddress] += jackpotCommissionAmount;
+                emit JackpotCommission(msg.sender, jackpotCommissionAmount, jackpotPool[tableAddress]);
+            }
         }
 
         //referralCommission
@@ -242,60 +268,82 @@ contract LotteryManagerV3 {
 
         ILotteryTableV3.RoundResult memory roundResult = lotteryTableV3.start(coolDownTimeBlock);
         console.log("round, roundNumber, roundResult.winnerAllCount", roundResult.round, roundResult.roundNumber, roundResult.winnerAllCount);
+
         uint256 poolAmount = tablePool[tableAddress];
         console.log("poolAmount, roundResult.winners.length", poolAmount, roundResult.winners.length);
         //计算一份奖金是多少
         (bool flag, uint256 onePieceReward) = poolAmount.tryDiv(roundResult.winnerAllCount);
         console.log("onePieceReward", onePieceReward);
-        //按allPlayers计算玩家输赢多少
-        for(uint256 i = 0; i < roundResult.players.length; i++) {
-            int256 reward;
-            if (roundResult.numbers[i] == roundResult.roundNumber) {
-                reward = int256(onePieceReward.mul(roundResult.counts[i]));
+        //给赢家转账
+        for (uint256 i = 0; i < roundResult.winners.length; i++) {
+            address winner = roundResult.winners[i];
+            uint256 count = roundResult.winnerCount[i];
+            uint256 winAmount = onePieceReward.mul(count);
+            console.log("tablePool[tableAddress], winAmount", tablePool[tableAddress], winAmount);
+            require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
+            tablePool[tableAddress] -= winAmount;
+            if (uint160(winner) < uint160(1000000000)) {
+                console.log("winner is robot, winAmount", winAmount);
+                token.transfer(msg.sender, winAmount);
             } else {
-                reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
+                token.transfer(winner, winAmount);
             }
-            rewardsMap[tableAddress].push(reward);
         }
-
-        //根据结果转账
-        if (roundResult.winners.length == 0) {
-            //没有赢家就全部转给banker
-            tablePool[tableAddress] = 0;
-            token.transfer(tableInfo.bankerWallet, poolAmount);
-        } else {
-            for (uint256 i = 0; i < roundResult.winners.length; i++) {
-                address winner = roundResult.winners[i];
-                uint256 count = roundResult.winnerCount[i];
-                //给赢家转账
-                uint256 winAmount = onePieceReward.mul(count);
-                console.log("tablePool[tableAddress], winAmount", tablePool[tableAddress], winAmount);
-                require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
-                //TODO 为啥polygon会报错，而内存链不会？先这么设置
-//                if (tablePool[tableAddress] < winAmount) {
-//                    winAmount = tablePool[tableAddress];
-//                }
-                tablePool[tableAddress] -= winAmount;
-                if (uint160(winner) < uint160(1000000000)) {
-                    console.log("winner is robot, winAmount", winAmount);
-                    token.transfer(msg.sender, winAmount);
-                } else {
-                    token.transfer(winner, winAmount);
+        //给jackpotWinner转账
+        if (roundResult.jackpotWinners.length > 0) {
+            uint256 jackpotAll = jackpotPool[tableAddress];
+            console.log("jackpotAll", jackpotAll);
+            console.log("roundResult.jackpotWinners.length", roundResult.jackpotWinners.length);
+            (bool flag, uint256 onePieceJackpot) = jackpotAll.tryDiv(roundResult.jackpotWinners.length);
+            if (flag && onePieceJackpot > 0) {
+                for(uint256 i = 0; i < roundResult.jackpotWinners.length; i++) {
+                    address winner = roundResult.jackpotWinners[i];
+                    require(jackpotPool[tableAddress] >= onePieceJackpot, "jackpot pool not enough!");
+                    jackpotPool[tableAddress] -= onePieceJackpot;
+                    if (uint160(winner) < uint160(1000000000)) {
+                        token.transfer(msg.sender, onePieceJackpot);
+                    } else {
+                        token.transfer(winner, onePieceJackpot);
+                    }
+                    emit JackpotWinner(winner, onePieceJackpot);
                 }
             }
+        }
+        //计算所有玩家输赢多少
+        for(uint256 i = 0; i < roundResult.players.length; i++) {
+            int256 reward;
+            if (roundResult.prizeNumbers.length == 1) {
+                if (roundResult.numbers[i] == roundResult.prizeNumbers[0]) {
+                    reward = int256(onePieceReward.mul(roundResult.counts[i]));
+                } else {
+                    reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
+                }
+            } else {
+                if (roundResult.numbers[i] == roundResult.prizeNumbers[0] || roundResult.numbers[i] == roundResult.prizeNumbers[1]) {
+                    reward = int256(onePieceReward.mul(roundResult.counts[i]));
+                } else {
+                    reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
+                }
+            }
+            rewardsMap[tableAddress].push(reward);
         }
 
         //尝试修改桌子
         _tryEditTable(tableAddress);
         //事件
-        {
-            int256[] memory rewards = rewardsMap[tableAddress];
-            emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber, roundResult.prizeNumbers, roundResult.winners, roundResult.winnerCount, rewards, roundResult.players, roundResult.numbers, roundResult.counts);
-        }
+        _roundEvent(hash, poolAmount, roundResult);
+
         delete rewardsMap[tableAddress];
         delete tableBlock[tableAddress];
         delete notifyTimestampMap[tableAddress];
         return true;
+    }
+
+    function _roundEvent(string memory hash, uint256 poolAmount, ILotteryTableV3.RoundResult memory roundResult) private {
+        address tableAddress = hashTableMap[hash];
+        emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber,
+            roundResult.prizeNumbers, roundResult.winners, roundResult.winnerCount,
+            rewardsMap[tableAddress], roundResult.players, roundResult.numbers, roundResult.counts, roundResult.jackpotWinners);
     }
 
     function _robotJoinTable(ILotteryTableV3.TableInfo memory tableInfo, address tableAddress) private {
@@ -416,7 +464,4 @@ contract LotteryManagerV3 {
         owner = newOwner;
         result = true;
     }
-
-
-
 }

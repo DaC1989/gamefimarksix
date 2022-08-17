@@ -16,6 +16,7 @@ interface ILotteryTableDeployerV3 {
         uint256 referralCommission;
         address bankerWallet;
         uint256 delayBlocks;
+        uint256 jackpotCommission;
     }
 
     function getParameters() external view returns (Parameters memory parameters);

@@ -14,7 +14,7 @@ contract LotteryTableDeployerV3 is ILotteryTableDeployerV3{
 
     function deploy(address managerContract, address factory, address creator, uint256 amount, uint256 minPPL,
         uint256 maxPPL, uint256 coolDownTime, uint256 gameTime,
-        uint256 bankerCommission, uint256 referralCommission, address bankerWallet, uint256 delayBlocks)
+        uint256 bankerCommission, uint256 referralCommission, address bankerWallet, uint256 delayBlocks, uint256 jackpotCommission)
     internal returns (address table) {
         params = Parameters(
             {
@@ -29,10 +29,11 @@ contract LotteryTableDeployerV3 is ILotteryTableDeployerV3{
                 bankerCommission:bankerCommission,
                 referralCommission:referralCommission,
                 bankerWallet:bankerWallet,
-                delayBlocks:delayBlocks
+                delayBlocks:delayBlocks,
+                jackpotCommission:jackpotCommission
             }
         );
-        table = address(new LotteryTableV3{salt: keccak256(abi.encode(factory, creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlocks))}());
+        table = address(new LotteryTableV3{salt: keccak256(abi.encode(factory, creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlocks, jackpotCommission))}());
         delete params;
     }
 

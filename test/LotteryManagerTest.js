@@ -202,7 +202,7 @@ describe("LotteryManager", function () {
         console.log("LotteryManager deployed to:", lotteryManager.address);
 
         const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
-            Web3.utils.toWei('2', 'ether'), 20, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", 0);
+            Web3.utils.toWei('2', 'ether'), 20, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", 1, 10);
         const receipt = await createTableIfNecessary.wait()
         let hashString = "";
         for (const event of receipt.events) {
@@ -220,7 +220,7 @@ describe("LotteryManager", function () {
             "gameTime": 10,
             "bankerCommission":1,
             "referralCommission":1,
-            "bankerWallet":"0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", "delayBlocks":0};
+            "bankerWallet":"0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", "delayBlocks":20, "jackpotCommission":20};
 
         //player approve
         await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('1.111111111111111111', 'ether'));
@@ -260,6 +260,12 @@ describe("LotteryManager", function () {
         for (const event of startRoundTxReceipt.events) {
             if (event.event == 'StartRound') {
                 console.log("StartRound",event)
+            }
+            if (event.event == 'JackpotCommission') {
+                console.log("JackpotCommission",event)
+            }
+            if (event.event == 'JackpotWinner') {
+                console.log("JackpotWinner",event)
             }
         }
 

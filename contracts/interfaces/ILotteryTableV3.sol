@@ -14,6 +14,7 @@ interface ILotteryTableV3 {
         uint256 referralCommission;
         address bankerWallet;
         uint256 delayBlocks;
+        uint256 jackpotCommission;
     }
 
     struct JoinInfo {
@@ -39,6 +40,7 @@ interface ILotteryTableV3 {
         uint256 winnerAllCount;//本局总的中奖下注数量
         address[] winners;//赢家
         uint256[] winnerCount;//赢家下注数量
+        address[] jackpotWinners;//jackpot赢家
     }
 
     function joinTable(JoinInfo memory joinInfo) external;
