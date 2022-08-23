@@ -8,7 +8,7 @@ const web3 = new Web3(url);
 // const web3 = createAlchemyWeb3(url);
 
 // erc20 deployed to: 0x472E4F7984D8816D2F8b07dAbE41971aaEBC9447
-// lotteryManagerV3 deployed to: 0xac598854260723CB4D83148225BBeE60f535E26f
+// lotteryManagerV3 deployed to: 0x8Cb9A356f9945d9532F0d53b62C87e92f08ab701
 
 const abiJson = require("../artifacts/contracts/LotteryManagerV3.sol/LotteryManagerV3.json");
 const contractAddress = "0xac598854260723CB4D83148225BBeE60f535E26f";
