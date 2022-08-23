@@ -54,7 +54,7 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
                 amount:params.amount,
                 minPPL:params.minPPL,
                 maxPPL:params.maxPPL,
-                coolDownTime:params.amount,
+                coolDownTime:params.coolDownTime,
                 gameTime:params.gameTime,
                 bankerCommission:params.bankerCommission,
                 referralCommission:params.referralCommission,
