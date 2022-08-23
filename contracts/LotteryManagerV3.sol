@@ -121,7 +121,8 @@ contract LotteryManagerV3 {
         uint256 referralCommission,
         address bankerWallet,
         uint256 delayBlock, //延迟开奖高度数量
-        uint256 jackpotCommission
+        uint256 jackpotCommission //jackpot占bankerCommission比例
+        //uint256 jackpotCount //jackpot命中次数
     )
     external
     onlyManagerOwner
@@ -130,11 +131,14 @@ contract LotteryManagerV3 {
         string memory hashString
     ) {
         require(msg.sender == owner, "Only contract owner is allowed to call this function");
-        address table = ILotteryFactoryV3(factory).getTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission);
+        address table = ILotteryFactoryV3(factory).getTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime,
+            gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission);
         if (table == address(0)) {
-            table = ILotteryFactoryV3(factory).createTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission);
+            table = ILotteryFactoryV3(factory).createTable(address(this), creator, amount, minPPL, maxPPL, coolDownTime,
+                gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission);
         }
-        uint256 hash = uint256(keccak256(abi.encode(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission)));
+        uint256 hash = uint256(keccak256(abi.encode(address(this), creator, amount, minPPL, maxPPL, coolDownTime, gameTime,
+            bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission)));
         hashString = hash.toString();
         hashTableMap[hashString] = table;
         tableHashMap[table] = hashString;
@@ -259,8 +263,6 @@ contract LotteryManagerV3 {
 
         LotteryTableV3 lotteryTableV3 = LotteryTableV3(tableAddress);
         ILotteryTableV3.TableInfo memory tableInfo = lotteryTableV3.getTableInfo();
-        //机器人下注
-        _robotJoinTable(tableInfo, tableAddress);
         //获取开奖结果
         //校验cool down time的高度
         uint256 coolDownTimeBlock = tableBlock[tableAddress];
@@ -346,6 +348,29 @@ contract LotteryManagerV3 {
             rewardsMap[tableAddress], roundResult.players, roundResult.numbers, roundResult.counts, roundResult.jackpotWinners);
     }
 
+    //通知合约table已到cool down time
+    function notifyCoolDownTime(string memory hash) external onlyManagerOwner returns (uint256 coolDownTimeBlock) {
+        address tableAddress = hashTableMap[hash];
+        require(tableAddress != address(0), "please check the address!");
+
+        coolDownTimeBlock = block.number;
+        console.log("block.number", coolDownTimeBlock);
+        tableBlock[tableAddress] = coolDownTimeBlock;
+        uint256 timestamp = block.timestamp;
+        notifyTimestampMap[tableAddress] = block.timestamp;
+
+        LotteryTableV3 lotteryTableV3 = LotteryTableV3(tableAddress);
+        ILotteryTableV3.TableInfo memory tableInfo = lotteryTableV3.getTableInfo();
+        //机器人下注
+        _robotJoinTable(tableInfo, tableAddress);
+
+        emit NotifyCoolDownTime(hash, coolDownTimeBlock, block.timestamp);
+    }
+
+    function _getRandom(uint256 playersLength) private view returns(uint256 randomNumber) {
+        randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, playersLength)));
+    }
+
     function _robotJoinTable(ILotteryTableV3.TableInfo memory tableInfo, address tableAddress) private {
         LotteryTableV3 lotteryTable = LotteryTableV3(tableAddress);
         address[] memory allPlayers = lotteryTable.getAllPlayers();
@@ -360,26 +385,9 @@ contract LotteryManagerV3 {
                 ILotteryTableV3.JoinInfo memory joinInfo = ILotteryTableV3.JoinInfo({player:robotAddress, count: 1, number:number, referraler:address(0)});
                 lotteryTable.joinTable(joinInfo);
                 _afterJoinTable(1, tableInfo, tableAddress);
+
             }
         }
-    }
-
-    function _getRandom(uint256 playersLength) private view returns(uint256 randomNumber) {
-        randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, playersLength)));
-    }
-
-    //通知合约table已到cool down time
-    function notifyCoolDownTime(string memory hash) external onlyManagerOwner returns (uint256 coolDownTimeBlock) {
-        address tableAddress = hashTableMap[hash];
-        require(tableAddress != address(0), "please check the address!");
-
-        coolDownTimeBlock = block.number;
-        console.log("block.number", coolDownTimeBlock);
-        tableBlock[tableAddress] = coolDownTimeBlock;
-        uint256 timestamp = block.timestamp;
-        notifyTimestampMap[tableAddress] = block.timestamp;
-
-        emit NotifyCoolDownTime(hash, coolDownTimeBlock, block.timestamp);
     }
 
     //referral a:被邀请人；b：邀请人

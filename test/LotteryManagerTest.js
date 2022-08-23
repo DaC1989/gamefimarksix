@@ -189,7 +189,7 @@ describe("LotteryManager", function () {
         console.log("totalSupply", totalSupply);
         console.log("balanceOf 0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827", await erc20.balanceOf("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827"));
 
-        await erc20.connect(signers[0]).transfer(player, Web3.utils.toWei('50', 'ether'));
+        await erc20.connect(signers[0]).transfer(player, Web3.utils.toWei('50000', 'ether'));
         console.log("balanceOf player", await erc20.balanceOf(player));
 
         const LotteryManager = await hre.ethers.getContractFactory("LotteryManagerV3", {
@@ -202,7 +202,7 @@ describe("LotteryManager", function () {
         console.log("LotteryManager deployed to:", lotteryManager.address);
 
         const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
-            Web3.utils.toWei('2', 'ether'), 20, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", 1, 10);
+            Web3.utils.toWei('2', 'ether'), 20, 5, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", 0, 10);
         const receipt = await createTableIfNecessary.wait()
         let hashString = "";
         for (const event of receipt.events) {
@@ -223,7 +223,7 @@ describe("LotteryManager", function () {
             "bankerWallet":"0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", "delayBlocks":20, "jackpotCommission":20};
 
         //player approve
-        await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('1.111111111111111111', 'ether'));
+        //await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('1.111111111111111111', 'ether'));
 
         //joinTable
         // const joinTableV2Tx = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString);
@@ -243,6 +243,7 @@ describe("LotteryManager", function () {
         const holdingTicketTx = await lotteryManager.holdingTicket(hashString);
         console.log("holdingTicketTx", holdingTicketTx);
 
+        await erc20.approve(lotteryManager.address, erc20.balanceOf(signers[0].address));
         //notifyCoolDownTime
         const notifyCoolDownTimeTx = await lotteryManager.notifyCoolDownTime(hashString);
         const notifyCoolDownTimeTxReceipt = await notifyCoolDownTimeTx.wait();
@@ -254,7 +255,6 @@ describe("LotteryManager", function () {
         console.log("getTableInfoTxReceipt", getTableInfoTx)
 
         //start round
-        await erc20.approve(lotteryManager.address, erc20.balanceOf(signers[0].address));
         const startRoundTx = await lotteryManager.startRoundV2(hashString);
         const startRoundTxReceipt = await startRoundTx.wait();
         for (const event of startRoundTxReceipt.events) {

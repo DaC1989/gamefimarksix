@@ -41,7 +41,7 @@ contract LotteryFactoryV3 is ILotteryFactoryV3, LotteryTableDeployerV3, NoDelega
         require(bankerCommission > 0);
         require(referralCommission > 0);
         require(bankerWallet != address(0));
-        require(delayBlock > 0);
+        //require(delayBlock > 0);
 
         uint256 hash = uint256(keccak256(abi.encodePacked(address(this), amount, minPPL, maxPPL, coolDownTime, gameTime, bankerCommission, referralCommission, bankerWallet, delayBlock, jackpotCommission)));
         require(tableMap[creator][hash] == address(0), "already have the table");
