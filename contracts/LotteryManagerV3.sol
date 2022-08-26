@@ -247,16 +247,6 @@ contract LotteryManagerV3 {
         //计算一份奖金是多少
         (bool flag, uint256 onePieceReward) = poolAmount.tryDiv(roundResult.winnerAllCount);
         console.log("onePieceReward", onePieceReward);
-        //按allPlayers计算玩家输赢多少
-        for(uint256 i = 0; i < roundResult.players.length; i++) {
-            int256 reward;
-            if (roundResult.numbers[i] == roundResult.roundNumber) {
-                reward = int256(onePieceReward.mul(roundResult.counts[i]));
-            } else {
-                reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
-            }
-            rewardsMap[tableAddress].push(reward);
-        }
 
         //根据结果转账
         if (roundResult.winners.length == 0) {
@@ -271,10 +261,6 @@ contract LotteryManagerV3 {
                 uint256 winAmount = onePieceReward.mul(count);
                 console.log("tablePool[tableAddress], winAmount", tablePool[tableAddress], winAmount);
                 require(tablePool[tableAddress] >= winAmount, "table pool not enough for winAmount!");
-                //TODO 为啥polygon会报错，而内存链不会？先这么设置
-//                if (tablePool[tableAddress] < winAmount) {
-//                    winAmount = tablePool[tableAddress];
-//                }
                 tablePool[tableAddress] -= winAmount;
                 if (uint160(winner) < uint160(1000000000)) {
                     console.log("winner is robot, winAmount", winAmount);
@@ -283,6 +269,24 @@ contract LotteryManagerV3 {
                     token.transfer(winner, winAmount);
                 }
             }
+        }
+        //计算所有玩家输赢多少
+        for(uint256 i = 0; i < roundResult.players.length; i++) {
+            int256 reward;
+            if (roundResult.prizeNumbers.length == 1) {
+                if (roundResult.numbers[i] == roundResult.prizeNumbers[0]) {
+                    reward = int256(onePieceReward.mul(roundResult.counts[i]));
+                } else {
+                    reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
+                }
+            } else {
+                if (roundResult.numbers[i] == roundResult.prizeNumbers[0] || roundResult.numbers[i] == roundResult.prizeNumbers[1]) {
+                    reward = int256(onePieceReward.mul(roundResult.counts[i]));
+                } else {
+                    reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
+                }
+            }
+            rewardsMap[tableAddress].push(reward);
         }
 
         //尝试修改桌子
