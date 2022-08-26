@@ -32,7 +32,12 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         uint256[] winnerCount;//赢家多次下注数
         uint256 winnerAllCount;//压中的总下注数
 
-        mapping(address => bool) winnersMap;
+        mapping(address => bool) winnersMap;//判断玩家是否为winner
+        mapping(uint256 => bool) prizeNumbersMap;
+        uint256[] uniquePrizeNumbers;
+        mapping(uint256 => mapping(address => bool)) numberHad;
+        mapping(uint256 => address[]) numberWinnersMap;
+
     }
     Round private _round;
 
@@ -111,7 +116,17 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
                 _round.winners.push(_round.players[i]);
                 _round.winnerCount.push(_round.counts[i]);
                 _round.winnerAllCount += _round.counts[i];
+
+                //for jackpot feature
                 _round.winnersMap[_round.players[i]] = true;
+                if(_round.prizeNumbersMap[_round.numbers[i]] == false) {
+                    _round.prizeNumbersMap[_round.numbers[i]] = true;
+                    _round.uniquePrizeNumbers.push(_round.numbers[i]);
+                }
+                if(_round.numberHad[_round.numbers[i]][_round.players[i]] == false) {
+                    _round.numberHad[_round.numbers[i]][_round.players[i]] = true;
+                    _round.numberWinnersMap[_round.numbers[i]].push(_round.players[i]);
+                }
             }
         }
 
@@ -125,51 +140,109 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         roundResult.winners = _round.winners;
         roundResult.winnerCount = _round.winnerCount;
 
-        roundResult.jackpotWinners = _handleJackpot(_round.winnersMap, _round.winners, _round.prizeNumbers);
+//        roundResult.jackpotWinners = _handleJackpot(_round.winnersMap, _round.winners, _round.prizeNumbers);
 
         delete _round;
     }
 
-    mapping(address => uint256) recordNumber;
-    mapping(address => uint256) recordTimes;
+    mapping(address => uint256[]) recordNumbers;
+    mapping(address => mapping(uint256 => uint256)) recordTimes;
     address[] lastWinners;
     address[] jackpotWinners;
 
-    function _handleJackpot(mapping(address => bool) storage winnersMap, address[] memory winners, uint256[] memory winnerNumbers) private returns(address[] memory) {
-        delete jackpotWinners;
+    mapping(uint256 => mapping(address => bool)) numberHad;
+
+    function _handleJackpotV2(
+        mapping(address => bool) storage winnersMap,
+        address[] memory winners,
+        uint256[] memory winnerNumbers,
+        uint256[] memory uniquePrizeNumbers,
+        mapping(uint256 => mapping(address => bool)) storage numberHad,
+        mapping(uint256 => address[]) storage numberWinnersMap
+    ) private {
+        //
         //清除本次没有中奖的玩家
         for(uint256 i = 0; i < lastWinners.length; i++) {
             if(winnersMap[lastWinners[i]] == false) {
-                delete recordNumber[lastWinners[i]];
-                delete recordTimes[lastWinners[i]];
+                uint256[] memory numbers = recordNumbers[lastWinners[i]];
+                for(uint256 j = 0; j < numbers.length; j++) {
+                    delete recordTimes[lastWinners[i]][numbers[j]];
+                }
+                delete recordNumbers[lastWinners[i]];
             }
         }
-        delete lastWinners;
+        //清除中奖号码不一致的玩家
 
-        for(uint256 i = 0; i < winners.length; i++) {
-            address winner = winners[i];//赢家
-            uint256 number = winnerNumbers[i];//下注号码
-            if (recordTimes[winner] == 0) {
-                recordNumber[winner] = number;
-                recordTimes[winner] = 1;
-            } else {
-                if (recordNumber[winner] == number) {
-                    recordTimes[winner] += 1;
+        //
+        for(uint256 i = 0; i < uniquePrizeNumbers.length; i++) {
+            uint256 number = uniquePrizeNumbers[i];
+            address[] memory numberWinners = numberWinnersMap[number];
+            for(uint256 j = 0; j < numberWinners.length; j++) {
+                address winner = numberWinners[j];
+
+
+
+                if(recordTimes[winner][number] == 2) {
+                    jackpotWinners.push(winner);
+                    delete recordTimes[winner][number];
                 } else {
-                    recordNumber[winner] = number;
-                    recordTimes[winner] = 1;
+                    recordTimes[winner][number] += 1;
+                    lastWinners.push(winner);
                 }
             }
-            if (recordTimes[winner] == 3) {
-                jackpotWinners.push(winner);
-                delete recordNumber[winner];
-                delete recordTimes[winner];
-            } else {
-                lastWinners.push(winner);
-            }
         }
-        return jackpotWinners;
     }
+
+//    function _handleJackpot(mapping(address => bool) storage winnersMap, address[] memory winners, uint256[] memory winnerNumbers) private returns(address[] memory) {
+//        delete jackpotWinners;
+//        //清除本次没有中奖的玩家
+//        for(uint256 i = 0; i < lastWinners.length; i++) {
+//            if(winnersMap[lastWinners[i]] == false) {
+//                uint256[] memory numbers = recordNumber[lastWinners[i]];
+//                for (uint256 j = 0; j < numbers.length; j++) {
+//                    delete recordTimes[lastWinners[i]][numbers[j]];
+//                }
+//                delete recordNumber[lastWinners[i]];
+//            }
+//        }
+//        delete lastWinners;
+//
+//        for(uint256 i = 0; i < winners.length; i++) {
+//            address winner = winners[i];//赢家
+//            uint256 number = winnerNumbers[i];//下注号码
+//
+//            if (recordTimes[winner][number] == 0) {//本轮玩家上局不存在
+//                recordNumber[winner].push(number);
+//                recordTimes[winner][number] = 1;
+//            } else if (recordTimes[winner][number] == 1) {//本轮玩家上局存在
+//                if (recordNumber[winner][0] == number) {
+//                    recordTimes[winner][0] += 1;
+//
+//                } else {
+//                }
+//            }
+//
+//            if (recordTimes[winner] == 0) {
+//                recordNumber[winner] = number;
+//                recordTimes[winner] = 1;
+//            } else {
+//                if (recordNumber[winner] == number) {
+//                    recordTimes[winner] += 1;
+//                } else {
+//                    recordNumber[winner] = number;
+//                    recordTimes[winner] = 1;
+//                }
+//            }
+//            if (recordTimes[winner] == 3) {
+//                jackpotWinners.push(winner);
+//                delete recordNumber[winner];
+//                delete recordTimes[winner];
+//            } else {
+//                lastWinners.push(winner);
+//            }
+//        }
+//        return jackpotWinners;
+//    }
 
     function _getResultBlockHash(uint256 coolDownTimeBlock) private view returns(bytes32 hash) {
         uint resultBlock = coolDownTimeBlock.add(tableInfo.delayBlocks);
