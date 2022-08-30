@@ -80,6 +80,7 @@
      uint256 referralCommission;//推荐佣金比例，按万分之一计算
      address bankerWallet;//庄家钱包
      uint256 delayBlock; //延迟开奖高度数量
+     uint256 jackpotCommission; //jackpot占bankerCommission比例
    }
    ```
 
