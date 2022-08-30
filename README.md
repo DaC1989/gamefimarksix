@@ -7,13 +7,14 @@
        address creator, //创建者
        uint256 amount, //金额
        uint256 minPPL,//最小参加人数
-           uint256 maxPPL, //最大参加人数
-           uint256 coolDownTime, //游戏冷却时间
-           uint256 gameTime,//游戏开始时间
-           uint256 bankerCommission, //庄家佣金比例，按万分之一计算
-           uint256 referralCommission, //推荐佣金比例，按万分之一计算
-           address bankerWallet, //庄家钱包
-           uint256 delayBlock //延迟开奖高度数量
+       uint256 maxPPL, //最大参加人数
+       uint256 coolDownTime, //游戏冷却时间
+       uint256 gameTime,//游戏开始时间
+       uint256 bankerCommission, //庄家佣金比例，按万分之一计算
+       uint256 referralCommission, //推荐佣金比例，按万分之一计算
+       address bankerWallet, //庄家钱包
+       uint256 delayBlock, //延迟开奖高度数量
+       uint256 jackpotCommission //jackpot占bankerCommission比例
    )
    external 
    onlyManagerOwner 
@@ -50,6 +51,12 @@
        uint256 amount //佣金
    );
    
+   event JackpotCommission(
+       address player,//玩家
+       uint256 amount, //本次贡献给jackpot多少金额
+       uint256 all //当前table的jackpot金额
+   );
+   
    ```
 
 3. editTable，修改桌子参数，在下一次游戏开奖后生效
@@ -62,7 +69,7 @@
    external 
    onlyManagerOwner
    
-   struct ILotteryTableV3.TableInfo {
+   struct ILotteryTable.TableInfo {
      address creator;//创建者
      uint256 amount;//金额
      uint256 minPPL;//最小参加人数
@@ -99,7 +106,13 @@
            int256[] rewards,//玩家本局输赢金额
            address[] allPlayers,//所有玩家
            uint256[] numbers,//玩家下注号码
-           uint256[] counts//玩家下注数量
+           uint256[] counts,//玩家下注数量
+           address[] jackpotWinners //jackpot赢家
+   );
+   
+   event JackpotWinner(
+       address player, //jackpot 赢家
+       uint256 jackpotPrize //jackpot奖金
    );
    
    event EditTable(
@@ -168,31 +181,6 @@
    	uint256 coolDownTimeBlock, //cool down time 时刻的高度
    	uint256 notifyTimestamp //设置cool down time时的时间戳
    );
-   ```
-
-9. getTableInfo, 查询table信息
-
-   ```solidity
-   function getTableInfo(
-   	string memory hash//table的hash
-   ) 
-   external
-   view
-   returns(
-   	ILotteryTableV3.TableInfo memory tableInfo
-   )
-   struct ILotteryTableV3.TableInfo {
-     address creator;//创建者
-     uint256 amount;//金额
-     uint256 minPPL;//最小参加人数
-     uint256 maxPPL;//最大参加人数
-     uint256 coolDownTime;//游戏冷却时间
-     uint256 gameTime;//游戏开始时间
-     uint256 bankerCommission;//庄家佣金比例，按万分之一计算
-     uint256 referralCommission;//推荐佣金比例，按万分之一计算
-     address bankerWallet;//庄家钱包
-     uint256 delayBlock; //延迟开奖高度数量
-   }
    ```
 
    
