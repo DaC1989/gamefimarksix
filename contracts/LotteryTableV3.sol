@@ -11,11 +11,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "hardhat/console.sol";
+import "./libraries/ArrayUtils.sol";
 
 contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
     using SafeMath for uint256;
     using Counters for Counters.Counter;
     using Strings for uint256;
+    using ArrayUtils for uint256[];
 
     address public immutable factory;
     address public _managerContract;
@@ -129,6 +131,10 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
                 }
             }
         }
+        //for jackpot feature
+        if (_round.uniquePrizeNumbers.length == 1) {
+            _round.uniquePrizeNumbers.push(10);
+        }
 
         roundResult.round = _roundCount.current();
         roundResult.roundNumber = roundNumber;
@@ -140,7 +146,7 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         roundResult.winners = _round.winners;
         roundResult.winnerCount = _round.winnerCount;
 
-//        roundResult.jackpotWinners = _handleJackpot(_round.winnersMap, _round.winners, _round.prizeNumbers);
+        roundResult.jackpotWinners = _handleJackpotV2(_round.winnersMap, _round.winners, _round.uniquePrizeNumbers, _round.numberWinnersMap);
 
         delete _round;
     }
@@ -150,17 +156,14 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
     address[] lastWinners;
     address[] jackpotWinners;
 
-    mapping(uint256 => mapping(address => bool)) numberHad;
-
     function _handleJackpotV2(
         mapping(address => bool) storage winnersMap,
         address[] memory winners,
-        uint256[] memory winnerNumbers,
         uint256[] memory uniquePrizeNumbers,
-        mapping(uint256 => mapping(address => bool)) storage numberHad,
         mapping(uint256 => address[]) storage numberWinnersMap
-    ) private {
+    ) private returns(address[] memory) {
         //
+        delete jackpotWinners;
         //清除本次没有中奖的玩家
         for(uint256 i = 0; i < lastWinners.length; i++) {
             if(winnersMap[lastWinners[i]] == false) {
@@ -169,21 +172,31 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
                     delete recordTimes[lastWinners[i]][numbers[j]];
                 }
                 delete recordNumbers[lastWinners[i]];
+            } else {
+                //清除中奖号码不一致的玩家
+                uint256[] memory numbers = recordNumbers[lastWinners[i]];
+                for(uint256 j = 0; j < numbers.length; j++) {
+                    if(numbers[j] != uniquePrizeNumbers[0] || numbers[j] != uniquePrizeNumbers[1]) {
+                        recordNumbers[lastWinners[i]].removeAtIndex(j);
+                        delete recordTimes[lastWinners[i]][numbers[j]];
+                    }
+                }
             }
         }
-        //清除中奖号码不一致的玩家
-
         //
         for(uint256 i = 0; i < uniquePrizeNumbers.length; i++) {
             uint256 number = uniquePrizeNumbers[i];
             address[] memory numberWinners = numberWinnersMap[number];
             for(uint256 j = 0; j < numberWinners.length; j++) {
                 address winner = numberWinners[j];
-
-
-
                 if(recordTimes[winner][number] == 2) {
                     jackpotWinners.push(winner);
+                    uint256[] memory numbers = recordNumbers[winner];
+                    for(uint256 k = 0; k < numbers.length; k++) {
+                        if(numbers[k] == number) {
+                            recordNumbers[winner].removeAtIndex(k);
+                        }
+                    }
                     delete recordTimes[winner][number];
                 } else {
                     recordTimes[winner][number] += 1;
@@ -191,58 +204,8 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
                 }
             }
         }
+        return jackpotWinners;
     }
-
-//    function _handleJackpot(mapping(address => bool) storage winnersMap, address[] memory winners, uint256[] memory winnerNumbers) private returns(address[] memory) {
-//        delete jackpotWinners;
-//        //清除本次没有中奖的玩家
-//        for(uint256 i = 0; i < lastWinners.length; i++) {
-//            if(winnersMap[lastWinners[i]] == false) {
-//                uint256[] memory numbers = recordNumber[lastWinners[i]];
-//                for (uint256 j = 0; j < numbers.length; j++) {
-//                    delete recordTimes[lastWinners[i]][numbers[j]];
-//                }
-//                delete recordNumber[lastWinners[i]];
-//            }
-//        }
-//        delete lastWinners;
-//
-//        for(uint256 i = 0; i < winners.length; i++) {
-//            address winner = winners[i];//赢家
-//            uint256 number = winnerNumbers[i];//下注号码
-//
-//            if (recordTimes[winner][number] == 0) {//本轮玩家上局不存在
-//                recordNumber[winner].push(number);
-//                recordTimes[winner][number] = 1;
-//            } else if (recordTimes[winner][number] == 1) {//本轮玩家上局存在
-//                if (recordNumber[winner][0] == number) {
-//                    recordTimes[winner][0] += 1;
-//
-//                } else {
-//                }
-//            }
-//
-//            if (recordTimes[winner] == 0) {
-//                recordNumber[winner] = number;
-//                recordTimes[winner] = 1;
-//            } else {
-//                if (recordNumber[winner] == number) {
-//                    recordTimes[winner] += 1;
-//                } else {
-//                    recordNumber[winner] = number;
-//                    recordTimes[winner] = 1;
-//                }
-//            }
-//            if (recordTimes[winner] == 3) {
-//                jackpotWinners.push(winner);
-//                delete recordNumber[winner];
-//                delete recordTimes[winner];
-//            } else {
-//                lastWinners.push(winner);
-//            }
-//        }
-//        return jackpotWinners;
-//    }
 
     function _getResultBlockHash(uint256 coolDownTimeBlock) private view returns(bytes32 hash) {
         uint resultBlock = coolDownTimeBlock.add(tableInfo.delayBlocks);

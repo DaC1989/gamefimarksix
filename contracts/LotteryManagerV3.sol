@@ -320,7 +320,7 @@ contract LotteryManagerV3 {
                 } else {
                     reward = (-1) * int256(tableInfo.amount.mul(roundResult.counts[i]));
                 }
-            } else {
+            } else if (roundResult.prizeNumbers.length == 2) {
                 if (roundResult.numbers[i] == roundResult.prizeNumbers[0] || roundResult.numbers[i] == roundResult.prizeNumbers[1]) {
                     reward = int256(onePieceReward.mul(roundResult.counts[i]));
                 } else {

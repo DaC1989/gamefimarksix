@@ -176,7 +176,15 @@ describe("LotteryManager", function () {
         const lib = await Lib.deploy();
         await lib.deployed();
 
-        const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactoryV3");
+        const ArrayUtils = await ethers.getContractFactory("ArrayUtils");
+        const arrayUtils = await ArrayUtils.deploy();
+        await arrayUtils.deployed();
+
+        const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactoryV3", {
+            libraries: {
+                ArrayUtils: arrayUtils.address,
+            },
+        });
         const lotteryFactory = await LotteryFactory.deploy();
         await lotteryFactory.deployed();
         console.log("LotteryFactory deployed to:", lotteryFactory.address);
@@ -194,7 +202,7 @@ describe("LotteryManager", function () {
 
         const LotteryManager = await hre.ethers.getContractFactory("LotteryManagerV3", {
             // libraries: {
-            //     TableAddress: lib.address,
+            //     ArrayUtils: arrayUtils.address,
             // },
         });
         const lotteryManager = await LotteryManager.deploy(lotteryFactory.address, erc20.address);
