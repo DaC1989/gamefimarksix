@@ -1,5 +1,7 @@
 # LotteryManagerV3合约接口
 
+contract version: `0xc54df0f6e2925E4B23C309a83d9FC298688A7D54`
+
 1. createTableIfNecessary，创建桌子
 
    ```solidity
