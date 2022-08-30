@@ -17,7 +17,16 @@ async function main() {
     // console.log("erc20 deployed to:", erc20.address);
     // await erc20.connect(signers[0]).transfer(signers[1].address, Web3.utils.toWei('50', 'ether'));
     //
-    const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactoryV3");
+
+    const ArrayUtils = await ethers.getContractFactory("ArrayUtils");
+    const arrayUtils = await ArrayUtils.deploy();
+    await arrayUtils.deployed();
+
+    const LotteryFactory = await hre.ethers.getContractFactory("LotteryFactoryV3", {
+        libraries: {
+            ArrayUtils: arrayUtils.address,
+        },
+    });
     const lotteryFactory = await LotteryFactory.connect(signers[1]).deploy();
     await lotteryFactory.deployed();
     console.log("lotteryFactoryV3 deployed to:", lotteryFactory.address);
