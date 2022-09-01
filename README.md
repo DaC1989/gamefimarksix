@@ -99,19 +99,24 @@ contract version: `0xc54df0f6e2925E4B23C309a83d9FC298688A7D54`
    returns (bool);
    
    event StartRound(
-           string hash,//table的hash
-           uint256 round,//第几轮
-           uint256 poolAmount,//奖金池大小
-           uint256 roundNumber,//开奖结果
-           uint256[] prizeNumbers,//中奖号码,与roundWinnerArray一一对应
-           address[] roundWinnerArray,//赢家
-           uint256[] winnerCount,//赢家下注数量
-           int256[] rewards,//玩家本局输赢金额
-           address[] allPlayers,//所有玩家
-           uint256[] numbers,//玩家下注号码
-           uint256[] counts,//玩家下注数量
-           address[] jackpotWinners //jackpot赢家
+      StartRoundResult startRoundResult
    );
+   
+   struct StartRoundResult {
+       string hash;//table的hash
+       uint256 round;//第几轮
+       uint256 poolAmount;//奖金池大小
+       uint256 roundNumber;//开奖结果
+       uint256[] prizeNumbers;//中奖号码
+       address[] roundWinnerArray;//赢家
+       uint256[] winnerCount;//赢家下注数量
+       int256[] rewards;//玩家本局输赢金额
+       address[] allPlayers;//所有玩家
+       uint256[] numbers;//玩家下注号码
+       uint256[] counts;//玩家下注数量
+       address[] jackpotWinners; //jackpot赢家
+       uint256[] jackpotRewards;//jackpot赢家赢的金额
+   }
    
    event JackpotWinner(
        address player, //jackpot 赢家
@@ -184,6 +189,30 @@ contract version: `0xc54df0f6e2925E4B23C309a83d9FC298688A7D54`
    	uint256 coolDownTimeBlock, //cool down time 时刻的高度
    	uint256 notifyTimestamp //设置cool down time时的时间戳
    );
+   ```
+
+9. getTableInfo, 获取桌子参数
+
+   ```solidity
+   function getTableInfo(string memory hash) external
+   view
+   returns(
+   	ILotteryTableV3.TableInfo memory tableInfo //桌子参数
+   )
+   
+   struct ILotteryTable.TableInfo {
+     address creator;//创建者
+     uint256 amount;//金额
+     uint256 minPPL;//最小参加人数
+     uint256 maxPPL;//最大参加人数
+     uint256 coolDownTime;//游戏冷却时间
+     uint256 gameTime;//游戏开始时间
+     uint256 bankerCommission;//庄家佣金比例，按万分之一计算
+     uint256 referralCommission;//推荐佣金比例，按万分之一计算
+     address bankerWallet;//庄家钱包
+     uint256 delayBlock; //延迟开奖高度数量
+     uint256 jackpotCommission; //jackpot占bankerCommission比例
+   }
    ```
 
    
