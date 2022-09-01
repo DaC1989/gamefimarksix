@@ -269,6 +269,9 @@ describe("LotteryManager", function () {
             if (event.event == 'StartRound') {
                 console.log("StartRound",event)
             }
+            if (event.event == 'StartRoundEvent') {
+                console.log("StartRoundEvent",event)
+            }
             if (event.event == 'JackpotCommission') {
                 console.log("JackpotCommission",event)
             }

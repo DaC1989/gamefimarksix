@@ -23,6 +23,7 @@ contract LotteryManagerV3 {
     mapping(address => string) private tableHashMap;
     mapping(address => uint256) private tablePool;
     mapping(address => int256[]) private rewardsMap;
+    mapping(address => uint256[]) private jackpotRewardsMap;
     mapping(address => uint256) private tableBlock;//table的cool down time高度
     mapping(address => uint256) private notifyTimestampMap;//table设置cool down time时的时间戳
     mapping(address => uint256) private jackpotPool;//jackpot
@@ -46,20 +47,39 @@ contract LotteryManagerV3 {
         uint256 coolDownTimeBlock,//cool down time 时刻的高度
         uint256 notifyTimestamp
     );
-    event StartRound(
-        string hash,//table的hash
-        uint256 round,//第几轮
-        uint256 poolAmount,//奖金池大小
-        uint256 roundNumber,//开奖结果
-        uint256[] prizeNumbers,//中奖号码
-        address[] roundWinnerArray,//赢家
-        uint256[] winnerCount,//赢家下注数量
-        int256[] rewards,//玩家本局输赢金额
-        address[] allPlayers,//所有玩家
-        uint256[] numbers,//玩家下注号码
-        uint256[] counts,//玩家下注数量
-        address[] jackpotWinners //jackpot赢家
+    struct StartRoundResult {
+        string hash;//table的hash
+        uint256 round;//第几轮
+        uint256 poolAmount;//奖金池大小
+        uint256 roundNumber;//开奖结果
+        uint256[] prizeNumbers;//中奖号码
+        address[] roundWinnerArray;//赢家
+        uint256[] winnerCount;//赢家下注数量
+        int256[] rewards;//玩家本局输赢金额
+        address[] allPlayers;//所有玩家
+        uint256[] numbers;//玩家下注号码
+        uint256[] counts;//玩家下注数量
+        address[] jackpotWinners; //jackpot赢家
+        uint256[] jackpotRewards;//jackpot赢家赢的金额
+    }
+    event StartRound (
+        StartRoundResult startRoundResult
     );
+//    event StartRound(
+//        string hash,//table的hash
+//        uint256 round,//第几轮
+//        uint256 poolAmount,//奖金池大小
+//        uint256 roundNumber,//开奖结果
+//        uint256[] prizeNumbers,//中奖号码
+//        address[] roundWinnerArray,//赢家
+//        uint256[] winnerCount,//赢家下注数量
+//        int256[] rewards,//玩家本局输赢金额
+//        address[] allPlayers,//所有玩家
+//        uint256[] numbers,//玩家下注号码
+//        uint256[] counts,//玩家下注数量
+//        address[] jackpotWinners, //jackpot赢家
+//        uint256[] jackpotRewards//jackpot赢家赢的金额
+//    );
     event BankerCommission(
         address player,
         address banker,
@@ -302,6 +322,7 @@ contract LotteryManagerV3 {
                     address winner = roundResult.jackpotWinners[i];
                     require(jackpotPool[tableAddress] >= onePieceJackpot, "jackpot pool not enough!");
                     jackpotPool[tableAddress] -= onePieceJackpot;
+                    jackpotRewardsMap[tableAddress].push(onePieceJackpot);
                     if (uint160(winner) < uint160(1000000000)) {
                         token.transfer(msg.sender, onePieceJackpot);
                     } else {
@@ -336,6 +357,7 @@ contract LotteryManagerV3 {
         _roundEvent(hash, poolAmount, roundResult);
 
         delete rewardsMap[tableAddress];
+        delete jackpotRewardsMap[tableAddress];
         delete tableBlock[tableAddress];
         delete notifyTimestampMap[tableAddress];
         return true;
@@ -343,9 +365,40 @@ contract LotteryManagerV3 {
 
     function _roundEvent(string memory hash, uint256 poolAmount, ILotteryTableV3.RoundResult memory roundResult) private {
         address tableAddress = hashTableMap[hash];
-        emit StartRound(hash, roundResult.round, poolAmount, roundResult.roundNumber,
-            roundResult.prizeNumbers, roundResult.winners, roundResult.winnerCount,
-            rewardsMap[tableAddress], roundResult.players, roundResult.numbers, roundResult.counts, roundResult.jackpotWinners);
+//        emit StartRound(
+//                hash,
+//                roundResult.round,
+//                poolAmount,
+//                roundResult.roundNumber,
+//                roundResult.prizeNumbers,
+//                roundResult.winners,
+//                roundResult.winnerCount,
+//                rewardsMap[tableAddress],
+//                roundResult.players,
+//                roundResult.numbers,
+//                roundResult.counts,
+//                roundResult.jackpotWinners,
+//                jackpotRewardsMap[tableAddress]
+//        );
+        emit StartRound(
+                StartRoundResult(
+                 {
+                    hash:hash,
+                    round:roundResult.round,
+                    poolAmount:poolAmount,
+                    roundNumber:roundResult.roundNumber,
+                    prizeNumbers:roundResult.prizeNumbers,
+                    roundWinnerArray:roundResult.winners,
+                    winnerCount:roundResult.winnerCount,
+                    rewards:rewardsMap[tableAddress],
+                    allPlayers:roundResult.players,
+                    numbers:roundResult.numbers,
+                    counts:roundResult.counts,
+                    jackpotWinners:roundResult.jackpotWinners,
+                    jackpotRewards:jackpotRewardsMap[tableAddress]
+                 }
+            )
+        );
     }
 
     //通知合约table已到cool down time
