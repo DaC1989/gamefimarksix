@@ -123,10 +123,15 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
 
                 //for jackpot feature
                 _round.winnersMap[_round.players[i]] = true;
-                if(_round.prizeNumbersMap[_round.numbers[i]] == false) {
-                    _round.prizeNumbersMap[_round.numbers[i]] = true;
+//                if(_round.prizeNumbersMap[_round.numbers[i]] == false) {
+//                    _round.prizeNumbersMap[_round.numbers[i]] = true;
+//                    _round.uniquePrizeNumbers.push(_round.numbers[i]);
+//                }
+                //
+                if(arrayHas(_round.uniquePrizeNumbers, _round.numbers[i]) == false) {
                     _round.uniquePrizeNumbers.push(_round.numbers[i]);
                 }
+
                 if(_round.numberHad[_round.numbers[i]][_round.players[i]] == false) {
                     _round.numberHad[_round.numbers[i]][_round.players[i]] = true;
                     _round.numberWinnersMap[_round.numbers[i]].push(_round.players[i]);
@@ -149,8 +154,33 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         roundResult.winnerCount = _round.winnerCount;
 
         roundResult.jackpotWinners = _handleJackpotV2(_round.winnersMap, _round.winners, _round.uniquePrizeNumbers, _round.numberWinnersMap);
-
+        //delete _round
+        //delete _round.prizeNumbersMap
+        for(uint256 i = 0; i < _round.prizeNumbers.length; i++) {
+            delete _round.prizeNumbersMap[_round.prizeNumbers[i]];
+        }
+        //delete _round.winnersMap;
+        for(uint256 i = 0; i < _round.winners.length; i++) {
+            delete _round.winnersMap[_round.winners[i]];
+        }
+        //delete _round.numberHad, _round.numberWinnersMap
+        for(uint256 i = 0; i < 10; i++) {
+            address[] memory numberWinners = _round.numberWinnersMap[i];
+            for(uint256 j = 0; j < numberWinners.length; j++) {
+                delete _round.numberHad[i][numberWinners[j]];
+            }
+            delete _round.numberWinnersMap[i];
+        }
         delete _round;
+    }
+
+    function arrayHas(uint256[] memory arr, uint256 ele) private returns(bool) {
+        for(uint256 i = 0; i < arr.length; i++) {
+            if(arr[i] == ele) {
+                return true;
+            }
+        }
+        return false;
     }
 
     mapping(address => uint256[]) recordNumbers;
@@ -164,10 +194,13 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         uint256[] memory uniquePrizeNumbers,
         mapping(uint256 => address[]) storage numberWinnersMap
     ) private returns(address[] memory) {
+        console.log("uniquePrizeNumbers.length", uniquePrizeNumbers.length);
         //
         delete jackpotWinners;
         //清除本次没有中奖的玩家
+        console.log("lastWinners.length", lastWinners.length);
         for(uint256 i = 0; i < lastWinners.length; i++) {
+            console.log("winnersMap[lastWinners[i]]", winnersMap[lastWinners[i]]);
             if(winnersMap[lastWinners[i]] == false) {
                 uint256[] memory numbers = recordNumbers[lastWinners[i]];
                 for(uint256 j = 0; j < numbers.length; j++) {
@@ -177,21 +210,32 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
             } else {
                 //清除中奖号码不一致的玩家
                 uint256[] memory numbers = recordNumbers[lastWinners[i]];
+                console.log("numbers.length", numbers.length);
                 for(uint256 j = 0; j < numbers.length; j++) {
-                    if(numbers[j] != uniquePrizeNumbers[0] || numbers[j] != uniquePrizeNumbers[1]) {
+                    console.log("numbers[j]", numbers[j]);
+                    if(numbers[j] != uniquePrizeNumbers[0] && numbers[j] != uniquePrizeNumbers[1]) {
                         recordNumbers[lastWinners[i]].removeAtIndex(j);
+                        console.log("recordTimes[lastWinners[i]][numbers[j]]", recordTimes[lastWinners[i]][numbers[j]]);
                         delete recordTimes[lastWinners[i]][numbers[j]];
                     }
                 }
             }
         }
         //
+        delete lastWinners;
+        //
         for(uint256 i = 0; i < uniquePrizeNumbers.length; i++) {
             uint256 number = uniquePrizeNumbers[i];
+            if(number == 10) {
+                continue;
+            }
+            console.log("uniquePrizeNumbers[i]", uniquePrizeNumbers[i]);
             address[] memory numberWinners = numberWinnersMap[number];
             for(uint256 j = 0; j < numberWinners.length; j++) {
                 address winner = numberWinners[j];
+                console.log("recordTimes[winner][number]", recordTimes[winner][number]);
                 if(recordTimes[winner][number] == 2) {
+                    console.log("recordTimes[winner][number] == 2");
                     jackpotWinners.push(winner);
                     uint256[] memory numbers = recordNumbers[winner];
                     for(uint256 k = 0; k < numbers.length; k++) {
@@ -200,9 +244,16 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
                         }
                     }
                     delete recordTimes[winner][number];
-                } else {
+                } else if(recordTimes[winner][number] == 1){
+                    console.log("recordTimes[winner][number] == 1");
                     recordTimes[winner][number] += 1;
                     lastWinners.push(winner);
+                } else if(recordTimes[winner][number] == 0){
+                    console.log("recordTimes[winner][number] == 0");
+                    recordTimes[winner][number] += 1;
+                    recordNumbers[winner].push(number);
+                    lastWinners.push(winner);
+                    console.log("recordTimes[winner][number] is", recordTimes[winner][number]);
                 }
             }
         }

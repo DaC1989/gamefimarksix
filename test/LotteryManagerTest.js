@@ -210,7 +210,7 @@ describe("LotteryManager", function () {
         console.log("LotteryManager deployed to:", lotteryManager.address);
 
         const createTableIfNecessary = await lotteryManager.createTableIfNecessary("0x979b7b65D5c5D6FaCbdBa8f803eEC8408E95e827",
-            Web3.utils.toWei('2', 'ether'), 2, 1, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", 0, 10);
+            Web3.utils.toWei('2', 'ether'), 1, 1, 5, 10, 1, 1, "0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", 0, 10);
         const receipt = await createTableIfNecessary.wait()
         let hashString = "";
         for (const event of receipt.events) {
@@ -231,7 +231,7 @@ describe("LotteryManager", function () {
             "bankerWallet":"0x18c5C2cAB8020E2bF9232BEb4bB4936E5Cb7Cecd", "delayBlocks":20, "jackpotCommission":20};
 
         //player approve
-        await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('2', 'ether'));
+        await erc20.connect(signers[1]).approve(lotteryManager.address, Web3.utils.toWei('2000', 'ether'));
 
         //joinTable
         const joinTableV2Tx = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString, 1);
@@ -241,11 +241,11 @@ describe("LotteryManager", function () {
         }
 
         //edit table
-        const editTableTx = await lotteryManager.editTable(hashString, tableInfo);
-        const editTableTxReceipt = await editTableTx.wait();
-        for (const event of editTableTxReceipt.events) {
-            console.log(`editTableTxReceipt ${event.event} with args ${event.args}`);
-        }
+        // const editTableTx = await lotteryManager.editTable(hashString, tableInfo);
+        // const editTableTxReceipt = await editTableTx.wait();
+        // for (const event of editTableTxReceipt.events) {
+        //     console.log(`editTableTxReceipt ${event.event} with args ${event.args}`);
+        // }
 
         //holdingTicket
         const holdingTicketTx = await lotteryManager.holdingTicket(hashString);
@@ -259,26 +259,92 @@ describe("LotteryManager", function () {
             console.log(`notifyCoolDownTimeTxReceipt ${event.event} with args ${event.args}`);
         }
         //getTableInfo
-        const getTableInfoTx = await lotteryManager.getTableInfo(hashString);
-        console.log("getTableInfoTxReceipt", getTableInfoTx)
+        // const getTableInfoTx = await lotteryManager.getTableInfo(hashString);
+        // console.log("getTableInfoTxReceipt", getTableInfoTx)
 
         //start round
         const startRoundTx = await lotteryManager.startRoundV2(hashString);
         const startRoundTxReceipt = await startRoundTx.wait();
         for (const event of startRoundTxReceipt.events) {
             if (event.event == 'StartRound') {
-                console.log("StartRound",event)
-            }
-            if (event.event == 'StartRoundEvent') {
-                console.log("StartRoundEvent",event)
-            }
-            if (event.event == 'JackpotCommission') {
-                console.log("JackpotCommission",event)
+                console.log("StartRound.startRoundResult1",event.args)
             }
             if (event.event == 'JackpotWinner') {
                 console.log("JackpotWinner",event)
             }
         }
+        //joinTable
+        const joinTableV2Tx2 = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString, 2);
+        const joinTableV2TxReceipt2 = await joinTableV2Tx2.wait();
+        for (const event of joinTableV2TxReceipt2.events) {
+            console.log(`joinTableV2TxReceipt2 ${event.event} with args ${event.args}`);
+        }
+        //notifyCoolDownTime
+        const notifyCoolDownTimeTx2 = await lotteryManager.notifyCoolDownTime(hashString);
+        const notifyCoolDownTimeTxReceipt2 = await notifyCoolDownTimeTx2.wait();
+        for (const event of notifyCoolDownTimeTxReceipt2.events) {
+            console.log(`notifyCoolDownTimeTxReceipt2 ${event.event} with args ${event.args}`);
+        }
+        //start round
+        const startRoundTx2 = await lotteryManager.startRoundV2(hashString);
+        const startRoundTxReceipt2 = await startRoundTx2.wait();
+        for (const event of startRoundTxReceipt2.events) {
+            if (event.event == 'StartRound') {
+                console.log("StartRound.startRoundResult2",event.args)
+            }
+            if (event.event == 'JackpotWinner') {
+                console.log("JackpotWinner",event)
+            }
+        }
+        //joinTable
+        const joinTableV2Tx3 = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString, 3);
+        const joinTableV2TxReceipt3 = await joinTableV2Tx3.wait();
+        for (const event of joinTableV2TxReceipt3.events) {
+            console.log(`joinTableV2TxReceipt3 ${event.event} with args ${event.args}`);
+        }
+        //notifyCoolDownTime
+        const notifyCoolDownTimeTx3 = await lotteryManager.notifyCoolDownTime(hashString);
+        const notifyCoolDownTimeTxReceipt3 = await notifyCoolDownTimeTx3.wait();
+        for (const event of notifyCoolDownTimeTxReceipt3.events) {
+            console.log(`notifyCoolDownTimeTxReceipt3 ${event.event} with args ${event.args}`);
+        }
+        //start round
+        const startRoundTx3 = await lotteryManager.startRoundV2(hashString);
+        const startRoundTxReceipt3 = await startRoundTx3.wait();
+        for (const event of startRoundTxReceipt3.events) {
+            if (event.event == 'StartRound') {
+                console.log("StartRound.startRoundResult3",event.args)
+            }
+            if (event.event == 'JackpotWinner') {
+                console.log("JackpotWinner",event)
+            }
+        }
+
+        //joinTable
+        const joinTableV2Tx4 = await lotteryManager.connect(signers[1]).joinTableV2(1, 2, hashString, 4);
+        const joinTableV2TxReceipt4 = await joinTableV2Tx4.wait();
+        for (const event of joinTableV2TxReceipt4.events) {
+            console.log(`joinTableV2TxReceipt4 ${event.event} with args ${event.args}`);
+        }
+        //notifyCoolDownTime
+        const notifyCoolDownTimeTx4 = await lotteryManager.notifyCoolDownTime(hashString);
+        const notifyCoolDownTimeTxReceipt4 = await notifyCoolDownTimeTx4.wait();
+        for (const event of notifyCoolDownTimeTxReceipt3.events) {
+            console.log(`notifyCoolDownTimeTxReceipt4 ${event.event} with args ${event.args}`);
+        }
+        //start round
+        const startRoundTx4 = await lotteryManager.startRoundV2(hashString);
+        const startRoundTxReceipt4 = await startRoundTx4.wait();
+        for (const event of startRoundTxReceipt4.events) {
+            if (event.event == 'StartRound') {
+                console.log("StartRound.startRoundResult4",event.args)
+            }
+            if (event.event == 'JackpotWinner') {
+                console.log("JackpotWinner",event)
+            }
+        }
+
+
 
     }).timeout(30000);
 });
