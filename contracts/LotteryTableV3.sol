@@ -75,6 +75,8 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
 
     //msg.sender is manager contract
     function joinTable(JoinInfo memory joinInfo) onlyManagerContract external override {
+        uint256 correctRound = nextRound();
+        require(joinInfo.round == correctRound, "Round is wrong");
         _joinTable(joinInfo);
     }
 
@@ -241,7 +243,7 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
         allPlayers = _round.players;
     }
 
-    function nextRound() external view returns(uint256 round) {
+    function nextRound() public view returns(uint256 round) {
         round = _roundCount.current() + 1;
     }
 

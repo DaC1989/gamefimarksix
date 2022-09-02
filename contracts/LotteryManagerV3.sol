@@ -208,7 +208,8 @@ contract LotteryManagerV3 {
     function joinTableV2(
         uint256 count,
         uint256 number,
-        string memory hash
+        string memory hash,
+        uint256 currentRound
     )
     external
     payable
@@ -221,10 +222,9 @@ contract LotteryManagerV3 {
         if (coolDownTimeBlock != 0 && block.number >= coolDownTimeBlock) {
             revert("arrived cool down time block, can not join this round!");
         }
-
         address referraler = referralMap[msg.sender];
         LotteryTableV3 lotteryTable = LotteryTableV3(tableAddress);
-        ILotteryTableV3.JoinInfo memory joinInfo = ILotteryTableV3.JoinInfo({player: msg.sender, count:count, number: number, referraler:referraler});
+        ILotteryTableV3.JoinInfo memory joinInfo = ILotteryTableV3.JoinInfo({player: msg.sender, count:count, number: number, referraler:referraler, round:currentRound});
         lotteryTable.joinTable(joinInfo);
 
         ILotteryTableV3.TableInfo memory tableInfo = lotteryTable.getTableInfo();
@@ -430,12 +430,13 @@ contract LotteryManagerV3 {
         uint256 allPlayersLength = allPlayers.length;
         if(allPlayersLength < tableInfo.minPPL) {
             uint256 gap = tableInfo.minPPL.sub(allPlayersLength);
+            uint256 round = lotteryTable.nextRound();
             //机器人下注
             for(uint256 i = 0; i < gap; i++) {
                 uint256 number = _getRandom(i).mod(10);
                 address robotAddress = address(uint160(i));
                 //
-                ILotteryTableV3.JoinInfo memory joinInfo = ILotteryTableV3.JoinInfo({player:robotAddress, count: 1, number:number, referraler:address(0)});
+                ILotteryTableV3.JoinInfo memory joinInfo = ILotteryTableV3.JoinInfo({player:robotAddress, count: 1, number:number, referraler:address(0), round:round});
                 lotteryTable.joinTable(joinInfo);
                 _afterJoinTable(1, tableInfo, tableAddress);
 

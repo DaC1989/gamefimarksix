@@ -22,6 +22,7 @@ interface ILotteryTableV3 {
         uint256 count;
         uint256 number;
         address referraler;
+        uint256 round;
     }
 
     struct RoundInfo {
