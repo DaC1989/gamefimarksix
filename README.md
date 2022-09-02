@@ -1,6 +1,6 @@
 # LotteryManagerV3合约接口
 
-contract version: `0x144022966e7782e23C8b5763D35467936C102736`
+contract version: `0xc271A3c9327Dc16Bca7Acd936771D31c47D73B4F`
 
 1. createTableIfNecessary，创建桌子
 
@@ -35,7 +35,8 @@ contract version: `0x144022966e7782e23C8b5763D35467936C102736`
    function joinTableV2(
        uint256 count, //下注数量
        uint256 number, //下注号码
-       string memory hash//table的hash
+       string memory hash,//table的hash
+       uint256 currentRound //当前第几轮
    )
        external 
        payable 
