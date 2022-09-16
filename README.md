@@ -216,5 +216,45 @@ contract version: `0xeD4c11d0FcaA3777cc4C4dF15fd76d9e51c0F619`
    }
    ```
 
+10. getRoundStatus, 获取游戏状态和结果
+
+   ```solidity
+   function getRoundStatus(
+   	string memory hash, 
+   	uint256 round
+   ) external view returns(
+   	RoundStatus memory roundStatus //游戏状态和结果
+   );
+   
+   struct RoundStatus {
+     string status;//WAITING, RUNNING, END
+     string result;//FAILED, SUCCESS
+     string message; //消息
+     StartRoundResult startRoundResult;//游戏开奖结果
+     EditTableResult editTableResult;//修改table的结果
+   }
+   
+   struct StartRoundResult {
+     string hash;//table的hash
+     uint256 round;//第几轮
+     uint256 poolAmount;//奖金池大小
+     uint256 roundNumber;//开奖结果
+     uint256[] prizeNumbers;//中奖号码
+     address[] roundWinnerArray;//赢家
+     uint256[] winnerCount;//赢家下注数量
+     int256[] rewards;//玩家本局输赢金额
+     address[] allPlayers;//所有玩家
+     uint256[] numbers;//玩家下注号码
+     uint256[] counts;//玩家下注数量
+     address[] jackpotWinners; //jackpot赢家
+     uint256[] jackpotRewards;//jackpot赢家赢的金额
+   }
+   
+   struct EditTableResult {
+     string beforeHash;
+     string newHash;
+   }
+   ```
+
    
 
