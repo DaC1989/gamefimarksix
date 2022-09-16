@@ -221,7 +221,7 @@ async function getMaticBalance(address) {
 }
 
 let hash = "96960858409662686889941291405022178343652862133237785188686581123087088197678";
-getUSDTBalance('0x29Bf30f822E93582b8ABcA1788eB142021f44EDb');
+// getUSDTBalance('0x29Bf30f822E93582b8ABcA1788eB142021f44EDb');
 // getMaticBalance('0x149bd24c00A24b3E2FdB46D17740f0aA1E99d2cD');
 // createTableIfNecessary();
 // notifyCoolDownTime(hash);
@@ -229,7 +229,7 @@ getUSDTBalance('0x29Bf30f822E93582b8ABcA1788eB142021f44EDb');
 // startRound(hash);
 // testEstimateGas();
 // testHoldingTicket();
-transferUSDT("0xdEaf9079E5fA4c33AF9159Ca5349a0c99a2964C2");
+transferUSDT("0xBbEB43509489cB7d71d804C2E5Ae24Bd50042B87");
 // referral("0xC0b87B15Af3078802ABd6754520439eA1DA0fe6D", "0x33E3eCe14f35DD7f031Eb277405044f7e5fBd8E2");
 // joinTable(1, 2, hash);
 

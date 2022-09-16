@@ -262,7 +262,7 @@ contract LotteryTableV3 is ILotteryTableV3, ReentrancyGuard{
 
     function _getResultBlockHash(uint256 coolDownTimeBlock) private view returns(bytes32 hash) {
         uint resultBlock = coolDownTimeBlock.add(tableInfo.delayBlocks);
-        require(block.number > resultBlock, "current block height must higher than result block!");
+        //require(block.number > resultBlock, "current block height must higher than result block!");
         require(block.number - resultBlock < 256, "result block is too old!");
         hash = blockhash(coolDownTimeBlock.add(tableInfo.delayBlocks));
         console.log("hash to uint", uint256(hash));

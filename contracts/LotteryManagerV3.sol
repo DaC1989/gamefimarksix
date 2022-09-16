@@ -29,7 +29,7 @@ contract LotteryManagerV3 {
     mapping(address => uint256) private jackpotPool;//jackpot
 
     mapping(address => ILotteryTableV3.TableInfo) private waitEdit;
-    mapping(string => bool) roundLock;
+    mapping(string => bool) private roundLock;
 
     event CreateTableIfNecessary(string hash);
     event EditTable(
@@ -62,24 +62,25 @@ contract LotteryManagerV3 {
         address[] jackpotWinners; //jackpot赢家
         uint256[] jackpotRewards;//jackpot赢家赢的金额
     }
+
+    struct EditTableResult {
+        string beforeHash;
+        string newHash;
+    }
+
+    struct RoundStatus {
+        string status;//WAITING, RUNNING, END
+        string result;//FAILED, SUCCESS
+        string message; //
+        StartRoundResult startRoundResult;
+        EditTableResult editTableResult;
+    }
+
+    mapping(string => mapping(uint256 => RoundStatus)) private roundStorage;
+
     event StartRound (
         StartRoundResult startRoundResult
     );
-//    event StartRound(
-//        string hash,//table的hash
-//        uint256 round,//第几轮
-//        uint256 poolAmount,//奖金池大小
-//        uint256 roundNumber,//开奖结果
-//        uint256[] prizeNumbers,//中奖号码
-//        address[] roundWinnerArray,//赢家
-//        uint256[] winnerCount,//赢家下注数量
-//        int256[] rewards,//玩家本局输赢金额
-//        address[] allPlayers,//所有玩家
-//        uint256[] numbers,//玩家下注号码
-//        uint256[] counts,//玩家下注数量
-//        address[] jackpotWinners, //jackpot赢家
-//        uint256[] jackpotRewards//jackpot赢家赢的金额
-//    );
     event BankerCommission(
         address player,
         address banker,
@@ -181,7 +182,7 @@ contract LotteryManagerV3 {
         waitEdit[tableAddress] = tableInfo;
     }
 
-    function _tryEditTable(address tableAddress) private returns(bool){
+    function _tryEditTable(address tableAddress) private returns(string memory newHash){
         ILotteryTableV3.TableInfo memory tableInfo = waitEdit[tableAddress];
         if(tableInfo.creator != address(0)) {
             string memory beforeHash = tableHashMap[tableAddress];
@@ -197,9 +198,7 @@ contract LotteryManagerV3 {
             delete waitEdit[tableAddress];
             console.log("before, after", beforeHash, hash.toString());
             emit EditTable(beforeHash, hash.toString());
-            return true;
-        } else {
-            return false;
+            newHash = hash.toString();
         }
     }
 
@@ -352,9 +351,9 @@ contract LotteryManagerV3 {
         }
 
         //尝试修改桌子
-        _tryEditTable(tableAddress);
+        string memory newHash = _tryEditTable(tableAddress);
         //事件
-        _roundEvent(hash, poolAmount, roundResult);
+        _roundEvent(hash, poolAmount, roundResult, newHash);
 
         delete rewardsMap[tableAddress];
         delete jackpotRewardsMap[tableAddress];
@@ -363,42 +362,41 @@ contract LotteryManagerV3 {
         return true;
     }
 
-    function _roundEvent(string memory hash, uint256 poolAmount, ILotteryTableV3.RoundResult memory roundResult) private {
+    function _roundEvent(string memory hash, uint256 poolAmount, ILotteryTableV3.RoundResult memory roundResult, string memory newHash) private {
         address tableAddress = hashTableMap[hash];
-//        emit StartRound(
-//                hash,
-//                roundResult.round,
-//                poolAmount,
-//                roundResult.roundNumber,
-//                roundResult.prizeNumbers,
-//                roundResult.winners,
-//                roundResult.winnerCount,
-//                rewardsMap[tableAddress],
-//                roundResult.players,
-//                roundResult.numbers,
-//                roundResult.counts,
-//                roundResult.jackpotWinners,
-//                jackpotRewardsMap[tableAddress]
-//        );
-        emit StartRound(
-                StartRoundResult(
-                 {
-                    hash:hash,
-                    round:roundResult.round,
-                    poolAmount:poolAmount,
-                    roundNumber:roundResult.roundNumber,
-                    prizeNumbers:roundResult.prizeNumbers,
-                    roundWinnerArray:roundResult.winners,
-                    winnerCount:roundResult.winnerCount,
-                    rewards:rewardsMap[tableAddress],
-                    allPlayers:roundResult.players,
-                    numbers:roundResult.numbers,
-                    counts:roundResult.counts,
-                    jackpotWinners:roundResult.jackpotWinners,
-                    jackpotRewards:jackpotRewardsMap[tableAddress]
-                 }
-            )
+
+        StartRoundResult memory startRoundResult = StartRoundResult(
+            {
+                hash:hash,
+                round:roundResult.round,
+                poolAmount:poolAmount,
+                roundNumber:roundResult.roundNumber,
+                prizeNumbers:roundResult.prizeNumbers,
+                roundWinnerArray:roundResult.winners,
+                winnerCount:roundResult.winnerCount,
+                rewards:rewardsMap[tableAddress],
+                allPlayers:roundResult.players,
+                numbers:roundResult.numbers,
+                counts:roundResult.counts,
+                jackpotWinners:roundResult.jackpotWinners,
+                jackpotRewards:jackpotRewardsMap[tableAddress]
+            }
         );
+        EditTableResult memory editTableResult = EditTableResult({
+            beforeHash: hash,
+            newHash: newHash
+        });
+
+        //状态修改
+        RoundStatus memory roundStatus = RoundStatus({
+            status: "END",
+            result: "SUCCESS",
+            message:"SUCCESS",
+            startRoundResult:startRoundResult,
+            editTableResult: editTableResult
+        });
+        roundStorage[hash][roundResult.round] = roundStatus;
+        emit StartRound(startRoundResult);
     }
 
     //通知合约table已到cool down time
@@ -504,6 +502,10 @@ contract LotteryManagerV3 {
 
         LotteryTableV3 lotteryTable = LotteryTableV3(tableAddress);
         tableInfo = lotteryTable.getTableInfo();
+    }
+
+    function getRoundStatus(string memory hash, uint256 round) external view returns(RoundStatus memory roundStatus) {
+        roundStatus = roundStorage[hash][round];
     }
 
     //修改table的manage contract
